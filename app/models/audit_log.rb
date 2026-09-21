@@ -1,0 +1,13 @@
+class AuditLog < ApplicationRecord
+  belongs_to :auditable, polymorphic: true
+
+  validates :action, presence: true
+  validates :audited_changes, presence: true
+
+  # Audit logs are an append-only trail: once written, a record must never be
+  # changed or removed, so persistence writes other than the initial create
+  # are rejected at the AR layer rather than relying on callers to behave.
+  def readonly?
+    persisted?
+  end
+end

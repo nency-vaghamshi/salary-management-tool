@@ -4,6 +4,8 @@ class Employee < ApplicationRecord
   belongs_to :country
 
   has_many :salary_records, dependent: :destroy
+  has_many :payroll_line_items, dependent: :destroy
+  has_many :payslips, dependent: :destroy
 
   enum :employment_status, { active: "active", inactive: "inactive", terminated: "terminated" }
 

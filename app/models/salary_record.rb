@@ -4,6 +4,7 @@ class SalaryRecord < ApplicationRecord
 
   has_many :salary_record_components, dependent: :destroy
   has_many :salary_components, through: :salary_record_components
+  has_many :payroll_line_items, dependent: :destroy
 
   enum :status, { active: "active", inactive: "inactive" }
 

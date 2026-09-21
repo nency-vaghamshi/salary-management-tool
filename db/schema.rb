@@ -10,9 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_21_132353) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_21_132808) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "audit_logs", force: :cascade do |t|
+    t.bigint "actor_id"
+    t.string "action", null: false
+    t.string "auditable_type", null: false
+    t.bigint "auditable_id", null: false
+    t.jsonb "audited_changes", null: false
+    t.datetime "created_at", null: false
+    t.index ["actor_id"], name: "index_audit_logs_on_actor_id"
+    t.index ["auditable_type", "auditable_id"], name: "index_audit_logs_on_auditable"
+    t.index ["created_at"], name: "index_audit_logs_on_created_at"
+  end
 
   create_table "countries", force: :cascade do |t|
     t.string "name", null: false
@@ -68,6 +80,50 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_21_132353) do
     t.index ["code"], name: "index_job_titles_on_code", unique: true
   end
 
+  create_table "payroll_line_items", force: :cascade do |t|
+    t.bigint "payroll_run_id", null: false
+    t.bigint "employee_id", null: false
+    t.bigint "salary_record_id", null: false
+    t.bigint "salary_component_id", null: false
+    t.string "component_type", null: false
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["employee_id"], name: "index_payroll_line_items_on_employee_id"
+    t.index ["payroll_run_id", "employee_id"], name: "index_payroll_line_items_on_payroll_run_id_and_employee_id"
+    t.index ["payroll_run_id"], name: "index_payroll_line_items_on_payroll_run_id"
+    t.index ["salary_component_id"], name: "index_payroll_line_items_on_salary_component_id"
+    t.index ["salary_record_id"], name: "index_payroll_line_items_on_salary_record_id"
+  end
+
+  create_table "payroll_runs", force: :cascade do |t|
+    t.date "period_start", null: false
+    t.date "period_end", null: false
+    t.string "status", default: "draft", null: false
+    t.datetime "processed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["period_end"], name: "index_payroll_runs_on_period_end"
+    t.index ["period_start", "period_end"], name: "index_payroll_runs_on_period_start_and_period_end", unique: true
+    t.index ["period_start"], name: "index_payroll_runs_on_period_start"
+    t.index ["status"], name: "index_payroll_runs_on_status"
+  end
+
+  create_table "payslips", force: :cascade do |t|
+    t.bigint "payroll_run_id", null: false
+    t.bigint "employee_id", null: false
+    t.string "payslip_number", null: false
+    t.string "status", default: "generated", null: false
+    t.string "document_reference"
+    t.datetime "generated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["employee_id"], name: "index_payslips_on_employee_id"
+    t.index ["payroll_run_id", "employee_id"], name: "index_payslips_on_payroll_run_id_and_employee_id", unique: true
+    t.index ["payroll_run_id"], name: "index_payslips_on_payroll_run_id"
+    t.index ["payslip_number"], name: "index_payslips_on_payslip_number", unique: true
+  end
+
   create_table "salary_components", force: :cascade do |t|
     t.string "name", null: false
     t.string "code", null: false
@@ -78,6 +134,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_21_132353) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["code"], name: "index_salary_components_on_code", unique: true
+  end
+
+  create_table "salary_imports", force: :cascade do |t|
+    t.bigint "uploaded_by_id", null: false
+    t.string "file_name", null: false
+    t.string "status", default: "pending", null: false
+    t.integer "total_rows", default: 0, null: false
+    t.integer "successful_rows", default: 0, null: false
+    t.integer "failed_rows", default: 0, null: false
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["uploaded_by_id"], name: "index_salary_imports_on_uploaded_by_id"
   end
 
   create_table "salary_record_components", force: :cascade do |t|
@@ -106,12 +176,33 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_21_132353) do
     t.index ["employee_id"], name: "index_salary_records_on_employee_id"
   end
 
+  create_table "tax_configurations", force: :cascade do |t|
+    t.bigint "country_id", null: false
+    t.string "name", null: false
+    t.string "tax_type", null: false
+    t.string "calculation_method", null: false
+    t.decimal "rate", precision: 10, scale: 4
+    t.decimal "threshold_amount", precision: 15, scale: 2
+    t.date "effective_from", null: false
+    t.date "effective_to"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["country_id"], name: "index_tax_configurations_on_country_id"
+  end
+
   add_foreign_key "countries", "currencies"
   add_foreign_key "employees", "countries"
   add_foreign_key "employees", "departments"
   add_foreign_key "employees", "job_titles"
+  add_foreign_key "payroll_line_items", "employees"
+  add_foreign_key "payroll_line_items", "payroll_runs"
+  add_foreign_key "payroll_line_items", "salary_components"
+  add_foreign_key "payroll_line_items", "salary_records"
+  add_foreign_key "payslips", "employees"
+  add_foreign_key "payslips", "payroll_runs"
   add_foreign_key "salary_record_components", "salary_components"
   add_foreign_key "salary_record_components", "salary_records"
   add_foreign_key "salary_records", "currencies"
   add_foreign_key "salary_records", "employees"
+  add_foreign_key "tax_configurations", "countries"
 end
