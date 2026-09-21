@@ -37,4 +37,22 @@ RSpec.describe Country, type: :model do
     expect(duplicate).not_to be_valid
     expect(duplicate.errors[:code]).to include("has already been taken")
   end
+
+  it "has many employees" do
+    country = Country.create!(name: "United States", code: "US", currency: currency)
+    department = Department.create!(name: "Engineering", code: "ENG")
+    job_title = JobTitle.create!(name: "Software Engineer", code: "SWE")
+    employee = Employee.create!(
+      employee_number: "EMP-1001",
+      first_name: "Ada",
+      last_name: "Lovelace",
+      email: "ada@example.com",
+      department: department,
+      job_title: job_title,
+      country: country,
+      joined_on: Date.new(2026, 1, 1)
+    )
+
+    expect(country.employees).to include(employee)
+  end
 end
