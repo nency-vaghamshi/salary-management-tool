@@ -116,4 +116,18 @@ RSpec.describe Employee, type: :model do
   it "rejects an employment_status outside the defined set" do
     expect { build_employee(employment_status: "on_vacation") }.to raise_error(ArgumentError)
   end
+
+  it "has many salary_records" do
+    employee = build_employee
+    employee.save!
+    salary_record = SalaryRecord.create!(
+      employee: employee,
+      currency: currency,
+      effective_from: Date.new(2024, 4, 1),
+      effective_to: nil,
+      status: "active"
+    )
+
+    expect(employee.salary_records).to include(salary_record)
+  end
 end
