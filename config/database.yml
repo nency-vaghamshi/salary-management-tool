@@ -1,0 +1,23 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: localhost
+
+development:
+  <<: *default
+  database: salary_management_development
+  username: <%= Rails.application.credentials.dig(:database, :development, :username) %>
+  password: <%= Rails.application.credentials.dig(:database, :development, :password) %>
+
+test:
+  <<: *default
+  database: salary_management_test
+  username: <%= Rails.application.credentials.dig(:database, :test, :username) %>
+  password: <%= Rails.application.credentials.dig(:database, :test, :password) %>
+
+production:
+  <<: *default
+  database: salary_management_production
+  username: <%= Rails.application.credentials.dig(:database, :production, :username) %>
+  password: <%= Rails.application.credentials.dig(:database, :production, :password) %>
