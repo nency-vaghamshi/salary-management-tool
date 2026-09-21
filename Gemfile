@@ -56,6 +56,11 @@ group :development do
   gem "web-console"
 end
 
+group :development, :test do
+  # Behavior-driven testing framework [https://github.com/rspec/rspec-rails]
+  gem "rspec-rails"
+end
+
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
