@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_21_124408) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_21_124554) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -41,6 +41,25 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_21_124408) do
     t.index ["code"], name: "index_departments_on_code", unique: true
   end
 
+  create_table "employees", force: :cascade do |t|
+    t.string "employee_number", null: false
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.string "email", null: false
+    t.bigint "department_id", null: false
+    t.bigint "job_title_id", null: false
+    t.bigint "country_id", null: false
+    t.string "employment_status", null: false
+    t.date "joined_on", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["country_id"], name: "index_employees_on_country_id"
+    t.index ["department_id"], name: "index_employees_on_department_id"
+    t.index ["email"], name: "index_employees_on_email", unique: true
+    t.index ["employee_number"], name: "index_employees_on_employee_number", unique: true
+    t.index ["job_title_id"], name: "index_employees_on_job_title_id"
+  end
+
   create_table "job_titles", force: :cascade do |t|
     t.string "name", null: false
     t.string "code", null: false
@@ -50,4 +69,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_21_124408) do
   end
 
   add_foreign_key "countries", "currencies"
+  add_foreign_key "employees", "countries"
+  add_foreign_key "employees", "departments"
+  add_foreign_key "employees", "job_titles"
 end
