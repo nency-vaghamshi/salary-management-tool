@@ -90,4 +90,21 @@ RSpec.describe SalaryRecord, type: :model do
     expect(another_open_ended).not_to be_valid
     expect(another_open_ended.errors[:effective_to]).to include("only one open-ended salary record is allowed per employee")
   end
+
+  it "has many payroll_line_items" do
+    salary_record = build_record
+    salary_record.save!
+    salary_component = SalaryComponent.create!(name: "Basic Salary", code: "BASIC", component_type: "earning", calculation_type: "fixed")
+    payroll_run = PayrollRun.create!(period_start: Date.new(2026, 9, 1), period_end: Date.new(2026, 9, 30))
+    line_item = PayrollLineItem.create!(
+      payroll_run: payroll_run,
+      employee: employee,
+      salary_record: salary_record,
+      salary_component: salary_component,
+      component_type: "earning",
+      amount: 70_000.00
+    )
+
+    expect(salary_record.payroll_line_items).to include(line_item)
+  end
 end

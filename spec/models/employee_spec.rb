@@ -130,4 +130,31 @@ RSpec.describe Employee, type: :model do
 
     expect(employee.salary_records).to include(salary_record)
   end
+
+  it "has many payroll_line_items" do
+    employee = build_employee
+    employee.save!
+    salary_record = SalaryRecord.create!(employee: employee, currency: currency, effective_from: Date.new(2024, 4, 1))
+    salary_component = SalaryComponent.create!(name: "Basic Salary", code: "BASIC", component_type: "earning", calculation_type: "fixed")
+    payroll_run = PayrollRun.create!(period_start: Date.new(2026, 9, 1), period_end: Date.new(2026, 9, 30))
+    line_item = PayrollLineItem.create!(
+      payroll_run: payroll_run,
+      employee: employee,
+      salary_record: salary_record,
+      salary_component: salary_component,
+      component_type: "earning",
+      amount: 70_000.00
+    )
+
+    expect(employee.payroll_line_items).to include(line_item)
+  end
+
+  it "has many payslips" do
+    employee = build_employee
+    employee.save!
+    payroll_run = PayrollRun.create!(period_start: Date.new(2026, 9, 1), period_end: Date.new(2026, 9, 30))
+    payslip = Payslip.create!(payroll_run: payroll_run, employee: employee, payslip_number: "PS-2026-09-1001")
+
+    expect(employee.payslips).to include(payslip)
+  end
 end
