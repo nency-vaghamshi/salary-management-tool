@@ -6,6 +6,9 @@ gem "rails", "~> 8.0.5", ">= 8.0.5.1"
 gem "propshaft"
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
+# Pin below 3.0: pg 1.6's jsonb encoder passes a `quirks_mode:` keyword that
+# the json gem removed in 3.0, breaking any jsonb column write (see AuditLog).
+gem "json", "~> 2.9"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
