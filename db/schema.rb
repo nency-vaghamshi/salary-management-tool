@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_21_131934) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_21_132353) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -68,8 +68,50 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_21_131934) do
     t.index ["code"], name: "index_job_titles_on_code", unique: true
   end
 
+  create_table "salary_components", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "code", null: false
+    t.string "component_type", null: false
+    t.string "calculation_type", null: false
+    t.boolean "is_taxable", default: false, null: false
+    t.boolean "is_active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_salary_components_on_code", unique: true
+  end
+
+  create_table "salary_record_components", force: :cascade do |t|
+    t.bigint "salary_record_id", null: false
+    t.bigint "salary_component_id", null: false
+    t.decimal "amount", precision: 15, scale: 2, null: false
+    t.string "calculation_type", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["salary_component_id"], name: "index_salary_record_components_on_salary_component_id"
+    t.index ["salary_record_id", "salary_component_id"], name: "index_salary_record_components_on_record_and_component", unique: true
+    t.index ["salary_record_id"], name: "index_salary_record_components_on_salary_record_id"
+  end
+
+  create_table "salary_records", force: :cascade do |t|
+    t.bigint "employee_id", null: false
+    t.bigint "currency_id", null: false
+    t.date "effective_from", null: false
+    t.date "effective_to"
+    t.string "status", default: "active", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["currency_id"], name: "index_salary_records_on_currency_id"
+    t.index ["employee_id", "effective_from"], name: "index_salary_records_on_employee_id_and_effective_from"
+    t.index ["employee_id", "status"], name: "index_salary_records_on_employee_id_and_status"
+    t.index ["employee_id"], name: "index_salary_records_on_employee_id"
+  end
+
   add_foreign_key "countries", "currencies"
   add_foreign_key "employees", "countries"
   add_foreign_key "employees", "departments"
   add_foreign_key "employees", "job_titles"
+  add_foreign_key "salary_record_components", "salary_components"
+  add_foreign_key "salary_record_components", "salary_records"
+  add_foreign_key "salary_records", "currencies"
+  add_foreign_key "salary_records", "employees"
 end
