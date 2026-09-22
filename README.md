@@ -74,3 +74,8 @@ bundle exec rails server
 ```
 
 Environment-specific configuration (database credentials, encryption keys for salary data) will be documented here once the app is scaffolded.
+
+## Documentation
+
+- [Database Design](Design%20document.md)
+- [ER Diagram](salary-management-E-R-diagram.png)
