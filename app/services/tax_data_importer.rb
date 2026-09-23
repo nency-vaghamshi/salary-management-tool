@@ -1,5 +1,5 @@
 # app/services/tax_data_importer.rb
-require 'benchmark'
+require "benchmark"
 
 class TaxDataImporter
   # Structural DTO definitions embedded directly inside the service domain
@@ -33,10 +33,9 @@ class TaxDataImporter
           failed << { code: code, error: e.message }
         end
       end
-    end 
+    end
 
     Rails.logger.info "⏱️ TaxDataImporter took #{time.round(2)}s to execute."
-    
     # Correctly returned at the very end of the method execution
     Result.new(imported: imported, failed: failed)
   end
@@ -46,7 +45,6 @@ class TaxDataImporter
   def import_country(code, fallback_name:)
     # 1. Fetch raw payload purely in memory via Faraday client
     raw_data = @client.fetch_country_tax(code)
-    
     # 2. Map and validate properties directly into local Data Objects
     country_data = parse_and_validate_tax_data!(raw_data, code, fallback_name)
 
@@ -108,7 +106,6 @@ class TaxDataImporter
 
   def parse_and_validate_tax_data!(raw_data, code, fallback_name)
     raise ArgumentError, "Invalid tax response for #{code}: expected an object" unless raw_data.is_a?(Hash)
-    
     tax_year = parse_tax_year(raw_data["taxYear"])
     raise ArgumentError, "Missing or invalid taxYear in response for #{code}" if tax_year.nil?
 

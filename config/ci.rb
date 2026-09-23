@@ -1,0 +1,32 @@
+# This file is adapted from Ruby on Rails (https://github.com/rails/rails).
+# Copyright (c) David Heinemeier Hansson, licensed under the MIT License.
+# See https://github.com/rails/rails/blob/main/MIT-LICENSE
+
+# Run using bin/ci
+
+CI.run do
+  step "Setup", "bin/setup --skip-server"
+
+  # Run independent checks in parallel for faster feedback:
+  #
+  #   group "Checks", parallel: 3 do
+  #     step "Style: Ruby",        "bin/rubocop"          if File.exist?("bin/rubocop")
+  #     step "Security: Brakeman", "bin/brakeman --quiet"  if File.exist?("bin/brakeman")
+  #     step "Security: Gems",     "bin/bundler-audit"     if File.exist?("bin/bundler-audit")
+  #   end
+
+  step "Style: Ruby",                      "bin/rubocop"        if File.exist?("bin/rubocop")
+  step "Security: Gem audit",              "bin/bundler-audit"  if File.exist?("bin/bundler-audit")
+  step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error --except EOLRuby,EOLRails" if File.exist?("bin/brakeman")
+  step "Tests: Rails",                     "bin/rails test"
+
+  # Optional: set a green commit status to unblock PR merge.
+  # GitHub: Requires the `gh` CLI and `gh extension install basecamp/gh-signoff`.
+  # Bitbucket: Install bb-signoff (https://github.com/Mohamed-Omar96/bb-signoff).
+  # if success?
+  #   step "Signoff: All systems go. Ready for merge and deploy.", "gh signoff"     # GitHub
+  #   step "Signoff: All systems go. Ready for merge and deploy.", "bb-signoff"     # Bitbucket
+  # else
+  #   failure "Signoff: CI failed. Do not merge or deploy.", "Fix the issues and try again."
+  # end
+end

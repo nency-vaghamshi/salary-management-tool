@@ -23,9 +23,9 @@ class GlobalTaxApiClient
       f.options.timeout = READ_TIMEOUT
 
       # Gracefully retries network stutters with an exponential backoff
-      f.request :retry, 
-                max: MAX_RETRIES, 
-                interval: 2, 
+      f.request :retry,
+                max: MAX_RETRIES,
+                interval: 2,
                 backoff_factor: 2,
                 exceptions: Faraday::Retry::Middleware::DEFAULT_EXCEPTIONS
 
