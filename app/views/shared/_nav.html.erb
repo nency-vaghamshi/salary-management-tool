@@ -1,0 +1,16 @@
+<nav class="fixed top-0 inset-x-0 z-10 bg-white border-b border-gray-200">
+  <div class="container mx-auto px-5 h-14 flex items-center justify-between">
+    <div class="flex items-center gap-8">
+      <span class="font-semibold text-gray-900">Salary Management</span>
+      <div class="flex items-center gap-1 text-sm">
+        <%= link_to "Dashboard", dashboard_path, class: "px-3 py-1.5 rounded-md #{current_page?(dashboard_path) ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-500 hover:text-gray-900'}" %>
+        <%= link_to "Employees", employees_path, class: "px-3 py-1.5 rounded-md #{controller_name == 'employees' ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-500 hover:text-gray-900'}" %>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 text-sm text-gray-600">
+      <span><%= current_user.name %></span>
+      <button type="button" data-controller="logout" data-action="click->logout#perform"
+              class="text-gray-500 hover:text-gray-900">Sign out</button>
+    </div>
+  </div>
+</nav>
