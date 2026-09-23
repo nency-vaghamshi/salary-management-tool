@@ -13,6 +13,11 @@ gem "json", "~> 2.9"
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem "importmap-rails"
+# Lightweight, database-friendly pagination for the employee roster (10k+ rows) [https://github.com/ddnexus/pagy]
+gem "pagy", "~> 9.3"
+
+# Encode/decode JSON Web Tokens for the API's bearer authentication [https://github.com/jwt/ruby-jwt]
+gem "jwt"
 # Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]
 gem "turbo-rails"
 # Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
@@ -20,8 +25,11 @@ gem "stimulus-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
-# Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
-gem "bcrypt", "~> 3.1.7"
+# Flexible authentication solution for the User model [https://github.com/heartcombo/devise]
+gem "devise"
+
+# Utility-first CSS via the standalone Tailwind CLI, no Node required [https://github.com/rails/tailwindcss-rails]
+gem "tailwindcss-rails"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]

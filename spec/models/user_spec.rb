@@ -29,13 +29,13 @@ RSpec.describe User, type: :model do
   it "authenticates with the correct password" do
     user = create(:user, password: "SecurePass123!")
 
-    expect(user.authenticate("SecurePass123!")).to eq(user)
+    expect(user.valid_password?("SecurePass123!")).to eq(true)
   end
 
   it "does not authenticate with an incorrect password" do
     user = create(:user, password: "SecurePass123!")
 
-    expect(user.authenticate("wrong-password")).to eq(false)
+    expect(user.valid_password?("wrong-password")).to eq(false)
   end
 
   it "is invalid with a duplicate email" do

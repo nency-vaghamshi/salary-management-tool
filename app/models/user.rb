@@ -1,8 +1,7 @@
 class User < ApplicationRecord
-  has_secure_password
+  devise :database_authenticatable, :validatable
 
   enum :role, { hr_manager: "hr_manager" }
 
   validates :name, presence: true
-  validates :email, presence: true, uniqueness: true
 end
