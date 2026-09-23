@@ -1,5 +1,5 @@
 class SalaryRecord < ApplicationRecord
-  belongs_to :employee
+  belongs_to :employment
   belongs_to :currency
 
   has_many :salary_record_components, dependent: :destroy
@@ -11,7 +11,7 @@ class SalaryRecord < ApplicationRecord
   validates :effective_from, presence: true
   validate :effective_to_on_or_after_effective_from
   validate :period_does_not_overlap_existing_records
-  validate :only_one_open_ended_record_per_employee
+  validate :only_one_open_ended_record_per_employment
 
   private
 
@@ -23,11 +23,11 @@ class SalaryRecord < ApplicationRecord
   end
 
   def period_does_not_overlap_existing_records
-    return if effective_from.blank? || employee_id.blank?
+    return if effective_from.blank? || employment_id.blank?
 
     new_effective_to = effective_to || Date::Infinity.new
 
-    overlaps = other_records_for_employee.any? do |other|
+    overlaps = other_records_for_employment.any? do |other|
       other_effective_to = other.effective_to || Date::Infinity.new
 
       effective_from <= other_effective_to && other.effective_from <= new_effective_to
@@ -35,20 +35,20 @@ class SalaryRecord < ApplicationRecord
 
     return unless overlaps
 
-    errors.add(:effective_from, "overlaps an existing salary record for this employee")
+    errors.add(:effective_from, "overlaps an existing salary record for this employment")
   end
 
-  def only_one_open_ended_record_per_employee
+  def only_one_open_ended_record_per_employment
     return unless effective_to.nil?
-    return if employee_id.blank?
+    return if employment_id.blank?
 
-    return unless other_records_for_employee.where(effective_to: nil).exists?
+    return unless other_records_for_employment.where(effective_to: nil).exists?
 
-    errors.add(:effective_to, "only one open-ended salary record is allowed per employee")
+    errors.add(:effective_to, "only one open-ended salary record is allowed per employment")
   end
 
-  def other_records_for_employee
-    scope = SalaryRecord.where(employee_id: employee_id)
+  def other_records_for_employment
+    scope = SalaryRecord.where(employment_id: employment_id)
     scope = scope.where.not(id: id) if persisted?
     scope
   end

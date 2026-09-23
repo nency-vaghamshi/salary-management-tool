@@ -1,6 +1,6 @@
 class PayrollRun < ApplicationRecord
   has_many :payroll_line_items, dependent: :destroy
-  has_many :payslips, dependent: :destroy
+  has_many :payslips, through: :payroll_line_items
 
   enum :status, { draft: "draft", processing: "processing", completed: "completed", failed: "failed" }
 

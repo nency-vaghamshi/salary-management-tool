@@ -43,6 +43,9 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 
+gem 'faraday'
+
+gem 'faraday-retry'
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -57,14 +60,22 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+  gem "awesome_print"
 end
 
 group :development, :test do
   # Behavior-driven testing framework [https://github.com/rspec/rspec-rails]
   gem "rspec-rails"
+
+  # Fixtures replacement with a straightforward definition syntax [https://github.com/thoughtbot/factory_bot_rails]
+  gem "factory_bot_rails"
 end
 
 group :test do
+  # Stubs HTTP requests in specs so external API clients are tested without
+  # real network calls [https://github.com/bblimke/webmock]
+  gem "webmock"
+
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
