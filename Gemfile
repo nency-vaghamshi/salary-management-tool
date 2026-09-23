@@ -14,7 +14,7 @@ gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem "importmap-rails"
 # Lightweight, database-friendly pagination for the employee roster (10k+ rows) [https://github.com/ddnexus/pagy]
-gem "pagy", "~> 9.3"
+gem "pagy", "~> 43.4"
 
 # Encode/decode JSON Web Tokens for the API's bearer authentication [https://github.com/jwt/ruby-jwt]
 gem "jwt"
