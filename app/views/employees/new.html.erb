@@ -1,0 +1,6 @@
+<% content_for :title, "New Employee" %>
+
+<div class="w-full">
+  <h1 class="text-xl font-semibold text-gray-900 mb-6">New Employee</h1>
+  <%= render "form", employee: @employee, departments: @departments, job_titles: @job_titles, countries: @countries %>
+</div>

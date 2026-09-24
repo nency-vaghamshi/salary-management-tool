@@ -1,0 +1,54 @@
+<% content_for :title, @employee.full_name %>
+
+<div class="w-full max-w-2xl">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold text-gray-900"><%= @employee.full_name %></h1>
+    <div class="flex items-center gap-3 text-sm">
+      <%= link_to "Edit", edit_employee_path(@employee), class: "text-indigo-600 hover:text-indigo-800 font-medium" %>
+      <%= button_to "Delete", employee_path(@employee), method: :delete,
+            form: { data: { turbo_confirm: "Remove #{@employee.full_name}? This cannot be undone." } },
+            class: "text-red-600 hover:text-red-800 font-medium bg-transparent p-0 cursor-pointer" %>
+      <%= link_to "Back to list", employees_path, class: "text-gray-500 hover:text-gray-900" %>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg ring-1 ring-gray-200 divide-y divide-gray-200">
+    <section class="p-5">
+      <h2 class="text-sm font-semibold text-gray-900 mb-3">Personal Information</h2>
+      <dl class="grid grid-cols-2 gap-4 text-sm">
+        <div><dt class="text-gray-500">Employee number</dt><dd class="text-gray-900 mt-0.5"><%= @employee.employee_number %></dd></div>
+        <div><dt class="text-gray-500">Email</dt><dd class="text-gray-900 mt-0.5"><%= @employee.email %></dd></div>
+        <div><dt class="text-gray-500">Department</dt><dd class="text-gray-900 mt-0.5"><%= @employee.department.name %></dd></div>
+        <div><dt class="text-gray-500">Job title</dt><dd class="text-gray-900 mt-0.5"><%= @employee.job_title.name %></dd></div>
+        <div><dt class="text-gray-500">Nationality</dt><dd class="text-gray-900 mt-0.5"><%= @employee.nationality_country&.name || "—" %></dd></div>
+        <div><dt class="text-gray-500">Residence country</dt><dd class="text-gray-900 mt-0.5"><%= @employee.residence_country&.name || "—" %></dd></div>
+      </dl>
+    </section>
+
+    <section class="p-5">
+      <h2 class="text-sm font-semibold text-gray-900 mb-3">Employment Information</h2>
+      <% if (employment = @employee.current_employment) %>
+        <dl class="grid grid-cols-2 gap-4 text-sm">
+          <div><dt class="text-gray-500">Payroll country</dt><dd class="text-gray-900 mt-0.5"><%= employment.payroll_country.name %></dd></div>
+          <div><dt class="text-gray-500">Status</dt><dd class="text-gray-900 mt-0.5"><%= employment.status.titleize %></dd></div>
+          <div><dt class="text-gray-500">Start date</dt><dd class="text-gray-900 mt-0.5"><%= employment.start_date %></dd></div>
+          <div><dt class="text-gray-500">End date</dt><dd class="text-gray-900 mt-0.5"><%= employment.end_date || "—" %></dd></div>
+        </dl>
+      <% else %>
+        <p class="text-sm text-gray-500">No employment record yet.</p>
+      <% end %>
+    </section>
+
+    <section class="p-5">
+      <h2 class="text-sm font-semibold text-gray-900 mb-3">Current Salary</h2>
+      <% if (salary_record = @employee.current_salary_record) %>
+        <p class="text-sm text-gray-900">
+          <%= number_to_currency(salary_record.total_amount, unit: salary_record.currency.symbol) %>
+          <span class="text-gray-500">effective <%= salary_record.effective_from %></span>
+        </p>
+      <% else %>
+        <p class="text-sm text-gray-500">No salary record yet.</p>
+      <% end %>
+    </section>
+  </div>
+</div>

@@ -54,6 +54,9 @@ gem "thruster", require: false
 gem "faraday"
 
 gem "faraday-retry"
+
+# Generates realistic fake data for seeding (names, emails, etc.) [https://github.com/faker-ruby/faker]
+gem "faker"
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

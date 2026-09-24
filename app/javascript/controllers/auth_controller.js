@@ -25,7 +25,7 @@ export default class extends Controller {
 
       const data = await response.json()
       localStorage.setItem("jwt", data.token)
-      Turbo.visit("/dashboard")
+      Turbo.visit("/employees")
     } finally {
       this.setLoading(false)
     }

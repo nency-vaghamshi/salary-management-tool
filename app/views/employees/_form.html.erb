@@ -1,0 +1,54 @@
+<%= form_with model: employee, class: "space-y-5 w-full max-w-lg" do |form| %>
+  <% if employee.errors.any? %>
+    <div class="rounded-lg bg-red-50 text-red-700 text-sm px-3.5 py-2.5 ring-1 ring-red-100">
+      <p class="font-medium mb-1">
+        <%= pluralize(employee.errors.count, "error") %> prevented this employee from being saved:
+      </p>
+      <ul class="list-disc list-inside">
+        <% employee.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <%= form.label :employee_number, class: "block text-sm font-medium text-gray-700 mb-1.5" %>
+      <%= form.text_field :employee_number, class: "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+    </div>
+    <div>
+      <%= form.label :email, class: "block text-sm font-medium text-gray-700 mb-1.5" %>
+      <%= form.email_field :email, class: "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+    </div>
+    <div>
+      <%= form.label :first_name, class: "block text-sm font-medium text-gray-700 mb-1.5" %>
+      <%= form.text_field :first_name, class: "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+    </div>
+    <div>
+      <%= form.label :last_name, class: "block text-sm font-medium text-gray-700 mb-1.5" %>
+      <%= form.text_field :last_name, class: "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+    </div>
+    <div>
+      <%= form.label :department_id, "Department", class: "block text-sm font-medium text-gray-700 mb-1.5" %>
+      <%= form.collection_select :department_id, departments, :id, :name, { prompt: "Select a department" }, class: "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+    </div>
+    <div>
+      <%= form.label :job_title_id, "Job title", class: "block text-sm font-medium text-gray-700 mb-1.5" %>
+      <%= form.collection_select :job_title_id, job_titles, :id, :name, { prompt: "Select a job title" }, class: "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+    </div>
+    <div>
+      <%= form.label :nationality_country_id, "Nationality", class: "block text-sm font-medium text-gray-700 mb-1.5" %>
+      <%= form.collection_select :nationality_country_id, countries, :id, :name, { prompt: "Select a country", include_blank: true }, class: "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+    </div>
+    <div>
+      <%= form.label :residence_country_id, "Residence country", class: "block text-sm font-medium text-gray-700 mb-1.5" %>
+      <%= form.collection_select :residence_country_id, countries, :id, :name, { prompt: "Select a country", include_blank: true }, class: "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3 pt-2">
+    <%= form.submit class: "inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg px-4 py-2.5 transition-colors cursor-pointer" %>
+    <%= link_to "Cancel", employees_path, class: "text-sm text-gray-500 hover:text-gray-900" %>
+  </div>
+<% end %>

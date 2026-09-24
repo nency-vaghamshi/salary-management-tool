@@ -1,0 +1,93 @@
+<% content_for :title, "Employees" %>
+
+<div class="w-full">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold text-gray-900">Employees</h1>
+    <%= link_to "New Employee", new_employee_path, class: "inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg px-4 py-2.5 transition-colors" %>
+  </div>
+
+  <%= form_with url: employees_path, method: :get, data: { controller: "roster-filters" },
+        class: "flex flex-wrap items-end gap-3 mb-5" do %>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Search</label>
+      <input type="text" name="q" value="<%= params[:q] %>" placeholder="Number, name, or email"
+             data-roster-filters-target="search" data-action="input->roster-filters#debouncedSubmit"
+             class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Department</label>
+      <%= select_tag :department_id, options_from_collection_for_select(@departments, :id, :name, params[:department_id]),
+            include_blank: "All", data: { action: "change->roster-filters#submit" },
+            class: "rounded-lg border border-gray-300 px-3 py-2 text-sm" %>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Job title</label>
+      <%= select_tag :job_title_id, options_from_collection_for_select(@job_titles, :id, :name, params[:job_title_id]),
+            include_blank: "All", data: { action: "change->roster-filters#submit" },
+            class: "rounded-lg border border-gray-300 px-3 py-2 text-sm" %>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Payroll country</label>
+      <%= select_tag :payroll_country_id, options_from_collection_for_select(@countries, :id, :name, params[:payroll_country_id]),
+            include_blank: "All", data: { action: "change->roster-filters#submit" },
+            class: "rounded-lg border border-gray-300 px-3 py-2 text-sm" %>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Employment status</label>
+      <%= select_tag :employment_status, options_for_select(Employment.statuses.keys.map { |s| [s.titleize, s] }, params[:employment_status]),
+            include_blank: "All", data: { action: "change->roster-filters#submit" },
+            class: "rounded-lg border border-gray-300 px-3 py-2 text-sm" %>
+    </div>
+    <div class="flex gap-2">
+      <button type="submit" class="bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-lg px-4 py-2 transition-colors">Filter</button>
+      <%= link_to "Clear", employees_path, class: "text-sm text-gray-500 hover:text-gray-900 px-2 py-2" %>
+    </div>
+  <% end %>
+
+  <div class="bg-white rounded-lg ring-1 ring-gray-200 overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <thead class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+        <tr>
+          <th class="px-4 py-3"><%= employee_sort_link("employee_number", "Employee #") %></th>
+          <th class="px-4 py-3"><%= employee_sort_link("first_name", "Name") %></th>
+          <th class="px-4 py-3"><%= employee_sort_link("email", "Email") %></th>
+          <th class="px-4 py-3">Department</th>
+          <th class="px-4 py-3">Job title</th>
+          <th class="px-4 py-3">Payroll country</th>
+          <th class="px-4 py-3">Current salary</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        <% @employees.each do |employee| %>
+          <tr>
+            <td class="px-4 py-3 text-gray-900"><%= link_to employee.employee_number, employee_path(employee), class: "hover:text-indigo-600" %></td>
+            <td class="px-4 py-3 text-gray-900"><%= employee.full_name %></td>
+            <td class="px-4 py-3 text-gray-500"><%= employee.email %></td>
+            <td class="px-4 py-3 text-gray-500"><%= employee.department.name %></td>
+            <td class="px-4 py-3 text-gray-500"><%= employee.job_title.name %></td>
+            <td class="px-4 py-3 text-gray-500"><%= employee.current_employment&.payroll_country&.name || "—" %></td>
+            <td class="px-4 py-3 text-gray-500">
+              <% if (salary_record = employee.current_salary_record) %>
+                <%= number_to_currency(salary_record.total_amount, unit: salary_record.currency.symbol) %>
+              <% else %>
+                —
+              <% end %>
+            </td>
+            <td class="px-4 py-3 text-right">
+              <%= link_to "Edit", edit_employee_path(employee), class: "text-indigo-600 hover:text-indigo-800" %>
+            </td>
+          </tr>
+        <% end %>
+
+        <% if @employees.none? %>
+          <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No employees match these filters.</td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-4 text-sm text-gray-500">
+    <%= raw pagy_nav(@pagy) if @pagy.pages > 1 %>
+  </div>
+</div>

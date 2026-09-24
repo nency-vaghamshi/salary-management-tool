@@ -8,22 +8,17 @@ Rails.application.routes.draw do
 
   get "login", to: "sessions#new"
   get "register", to: "registrations#new"
-  get "dashboard", to: "dashboard#index"
-  resources :employees do
-    resource :salary_revision, only: %i[new create], controller: "salary_revisions"
-  end
-  resources :salary_components, only: %i[index new create edit update] do
-    member do
-      patch :toggle_active
-    end
-  end
-  root "dashboard#index"
+  resources :employees
+  root "employees#index"
 
   namespace :api do
     namespace :v1 do
-      post "auth/register", to: "auth#register"
+      post "auth/signup", to: "auth#signup"
       post "auth/login", to: "auth#login"
       delete "auth/logout", to: "auth#logout"
+      get "auth/me", to: "auth#me"
+
+      resources :employees, except: %i[new edit]
     end
   end
 

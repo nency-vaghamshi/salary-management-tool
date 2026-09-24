@@ -1,8 +1,8 @@
 class Api::V1::AuthController < Api::V1::BaseController
-  skip_before_action :authenticate_user!
+  skip_before_action :authenticate_user!, only: %i[signup login logout]
 
-  def register
-    user = User.new(registration_params)
+  def signup
+    user = User.new(signup_params)
 
     if user.save
       render json: { token: issue_jwt_for(user), user: serialize(user) }, status: :created
@@ -26,11 +26,15 @@ class Api::V1::AuthController < Api::V1::BaseController
     head :no_content
   end
 
+  def me
+    render json: { user: serialize(current_user) }, status: :ok
+  end
+
   private
 
   # Role is intentionally not permitted here: it must stay at its DB default
-  # (hr_manager) so a registering client can't assign themselves a higher one.
-  def registration_params
+  # (hr_manager) so a signing-up client can't assign themselves a higher one.
+  def signup_params
     params.permit(:name, :email, :password, :password_confirmation)
   end
 

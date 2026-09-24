@@ -1,5 +1,6 @@
 class AuditLog < ApplicationRecord
   belongs_to :auditable, polymorphic: true
+  belongs_to :actor, class_name: "User", optional: true, foreign_key: :actor_id, inverse_of: false
 
   validates :action, presence: true
   validates :audited_changes, presence: true

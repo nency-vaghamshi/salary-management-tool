@@ -9,7 +9,7 @@ export default class extends Controller {
     this.setLoading(true)
 
     try {
-      const response = await fetch("/api/v1/auth/register", {
+      const response = await fetch("/api/v1/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({
@@ -28,7 +28,7 @@ export default class extends Controller {
       }
 
       localStorage.setItem("jwt", data.token)
-      Turbo.visit("/dashboard")
+      Turbo.visit("/employees")
     } finally {
       this.setLoading(false)
     }
