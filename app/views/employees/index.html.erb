@@ -1,58 +1,101 @@
 <% content_for :title, "Employees" %>
+<% filtering = EmployeeQuery.new(params).filtering? %>
 
-<div class="w-full">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-xl font-semibold text-gray-900">Employees</h1>
-    <%= link_to "New Employee", new_employee_path, class: "inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg px-4 py-2.5 transition-colors" %>
+<%= page_header title: "Employees", description: "Everyone on payroll across all countries, with their current employment and salary." do %>
+  <%= link_to new_employee_path, class: ui_button_class(:primary) do %>
+    <%= icon(:plus, css: "size-4") %> Add employee
+  <% end %>
+<% end %>
+
+<%= render "shared/employee_search", url: employees_path,
+      departments: @departments, job_titles: @job_titles, countries: @countries %>
+
+<div class="overflow-hidden rounded-lg bg-white ring-1 ring-gray-200">
+  <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+    <p class="text-sm text-gray-600">
+      <span class="font-medium text-gray-900"><%= number_with_delimiter(@pagy.count) %></span>
+      <%= filtering ? "matching #{'employee'.pluralize(@pagy.count)}" : "employee".pluralize(@pagy.count) %>
+    </p>
   </div>
 
-  <%= render "shared/employee_search", url: employees_path,
-        departments: @departments, job_titles: @job_titles, countries: @countries %>
-
-  <div class="bg-white rounded-lg ring-1 ring-gray-200 overflow-x-auto">
-    <table class="min-w-full text-sm">
-      <thead class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
-        <tr>
-          <th class="px-4 py-3"><%= employee_sort_link("employee_number", "Employee #") %></th>
-          <th class="px-4 py-3"><%= employee_sort_link("first_name", "Name") %></th>
-          <th class="px-4 py-3"><%= employee_sort_link("email", "Email") %></th>
-          <th class="px-4 py-3">Department</th>
-          <th class="px-4 py-3">Job title</th>
-          <th class="px-4 py-3">Payroll country</th>
-          <th class="px-4 py-3">Current salary</th>
-          <th class="px-4 py-3"></th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100">
-        <% @employees.each do |employee| %>
+  <% if @employees.any? %>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="whitespace-nowrap bg-gray-50 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
           <tr>
-            <td class="px-4 py-3 text-gray-900"><%= link_to employee.employee_number, employee_path(employee), class: "hover:text-indigo-600" %></td>
-            <td class="px-4 py-3 text-gray-900"><%= employee.full_name %></td>
-            <td class="px-4 py-3 text-gray-500"><%= employee.email %></td>
-            <td class="px-4 py-3 text-gray-500"><%= employee.department.name %></td>
-            <td class="px-4 py-3 text-gray-500"><%= employee.job_title.name %></td>
-            <td class="px-4 py-3 text-gray-500"><%= employee.current_employment&.payroll_country&.name || "—" %></td>
-            <td class="px-4 py-3 text-gray-500">
-              <% if (salary_record = employee.current_salary_record) %>
-                <%= number_to_currency(salary_record.total_amount, unit: salary_record.currency.symbol) %>
-              <% else %>
-                —
-              <% end %>
-            </td>
-            <td class="px-4 py-3 text-right">
-              <%= link_to "Edit", edit_employee_path(employee), class: "text-indigo-600 hover:text-indigo-800" %>
-            </td>
+            <th scope="col" class="px-4 py-2.5 font-medium"><%= employee_sort_link("employee_number", "Employee #") %></th>
+            <th scope="col" class="px-4 py-2.5 font-medium"><%= employee_sort_link("first_name", "Employee") %></th>
+            <th scope="col" class="hidden px-4 py-2.5 font-medium md:table-cell">Role</th>
+            <th scope="col" class="hidden px-4 py-2.5 font-medium lg:table-cell">Payroll country</th>
+            <th scope="col" class="px-4 py-2.5 font-medium">Status</th>
+            <th scope="col" class="px-4 py-2.5 text-right font-medium">Current salary</th>
+            <th scope="col" class="px-4 py-2.5"><span class="sr-only">Actions</span></th>
           </tr>
-        <% end %>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <% @employees.each do |employee| %>
+            <% employment = employee.current_employment %>
+            <% salary_record = employee.current_salary_record %>
+            <tr class="transition-colors hover:bg-gray-50">
+              <td class="whitespace-nowrap px-4 py-3">
+                <%= link_to employee_path(employee),
+                      class: "group/link inline-flex items-center gap-1 font-medium tabular-nums text-indigo-600 underline-offset-4 hover:text-indigo-800 hover:underline" do %>
+                  <%= employee.employee_number %>
+                  <%= icon(:chevron_right, css: "size-3.5 opacity-0 transition-opacity group-hover/link:opacity-100") %>
+                <% end %>
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-3">
+                  <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600" aria-hidden="true">
+                    <%= initials_for(employee.full_name) %>
+                  </span>
+                  <div class="min-w-0">
+                    <%= link_to employee.full_name, employee_path(employee), class: "block truncate font-medium text-gray-900 hover:text-indigo-600" %>
+                    <p class="truncate text-xs text-gray-500"><%= employee.email %></p>
+                  </div>
+                </div>
+              </td>
+              <td class="hidden px-4 py-3 md:table-cell">
+                <p class="whitespace-nowrap text-gray-900"><%= employee.job_title.name %></p>
+                <p class="text-xs text-gray-500"><%= employee.department.name %></p>
+              </td>
+              <td class="hidden px-4 py-3 text-gray-600 lg:table-cell"><%= employment&.payroll_country&.name || "—" %></td>
+              <td class="px-4 py-3">
+                <% if employment %>
+                  <%= status_badge(employment.status) %>
+                <% else %>
+                  <%= status_badge("inactive", label: "No employment") %>
+                <% end %>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+                <% if salary_record %>
+                  <span class="font-medium text-gray-900"><%= format_money(salary_record.total_amount, salary_record.currency) %></span>
+                <% else %>
+                  <span class="text-gray-400">Not set</span>
+                <% end %>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3 text-right">
+                <%= link_to "Edit", edit_employee_path(employee), class: "rounded-md px-2 py-1 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900",
+                      aria: { label: "Edit #{employee.full_name}" } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
 
-        <% if @employees.none? %>
-          <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No employees match these filters.</td></tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="mt-4">
-    <%= render "shared/pagination", pagy: @pagy %>
-  </div>
+    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3">
+      <p class="text-sm text-gray-600 tabular-nums">
+        Showing <span class="font-medium text-gray-900"><%= number_with_delimiter(@pagy.from) %></span>–<span class="font-medium text-gray-900"><%= number_with_delimiter(@pagy.to) %></span>
+        of <span class="font-medium text-gray-900"><%= number_with_delimiter(@pagy.count) %></span>
+      </p>
+      <%= render "shared/pagination", pagy: @pagy %>
+    </div>
+  <% elsif filtering %>
+    <%= render "shared/empty_state", title: "No employees match these filters",
+          description: "Try a different search or remove a filter.", action_label: "Clear filters", action_path: employees_path %>
+  <% else %>
+    <%= render "shared/empty_state", title: "No employees yet",
+          description: "Add your first employee to start managing salaries.", action_label: "Add employee", action_path: new_employee_path %>
+  <% end %>
 </div>

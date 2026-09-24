@@ -27,6 +27,14 @@ module UiHelper
                 "ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 " \
                 "focus:ring-2 focus:ring-inset focus:ring-indigo-600 focus:outline-none".freeze
 
+  # Same look as inputs but sized to its content, for filter toolbars.
+  SELECT_CLASS = "rounded-md border-0 bg-white py-2 pl-3 pr-8 text-sm text-gray-900 shadow-xs " \
+                 "ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 focus:outline-none".freeze
+
+  def ui_select_class
+    SELECT_CLASS
+  end
+
   def ui_button_class(variant = :primary)
     "#{BUTTON_BASE} #{BUTTON_CLASSES.fetch(variant)}"
   end
@@ -37,7 +45,7 @@ module UiHelper
 
   def status_badge(status, label: nil)
     tone, text, ring, dot = STATUS_TONES.fetch(status.to_s, STATUS_TONES["inactive"])
-    tag.span(class: "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset #{tone} #{text} #{ring}") do
+    tag.span(class: "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset #{tone} #{text} #{ring}") do
       safe_join([ tag.span(class: "size-1.5 rounded-full #{dot}", aria: { hidden: true }), label || status.to_s.titleize ])
     end
   end

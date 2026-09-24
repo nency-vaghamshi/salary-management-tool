@@ -35,7 +35,7 @@ class EmployeeQuery
 
   def roster
     relation = filtered.includes(:department, :job_title, :nationality_country, :residence_country,
-                                 employments: { salary_records: %i[currency salary_record_components] })
+                                 employments: [ :payroll_country, { salary_records: %i[currency salary_record_components] } ])
     sort(relation)
   end
 
