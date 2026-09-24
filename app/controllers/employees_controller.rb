@@ -1,12 +1,12 @@
 class EmployeesController < ApplicationController
+  include EmployeeSearchOptions
+
   before_action :set_employee, only: %i[show edit update destroy]
   before_action :set_form_collections, only: %i[new edit create update]
 
   def index
-    @pagy, @employees = pagy(EmployeeRosterQuery.new(params).call)
-    @departments = Department.order(:name)
-    @job_titles = JobTitle.order(:name)
-    @countries = Country.order(:name)
+    @pagy, @employees = pagy(EmployeeQuery.new(params).roster)
+    load_employee_search_options
   end
 
   def show

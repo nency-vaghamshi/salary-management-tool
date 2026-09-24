@@ -6,43 +6,8 @@
     <%= link_to "New Employee", new_employee_path, class: "inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg px-4 py-2.5 transition-colors" %>
   </div>
 
-  <%= form_with url: employees_path, method: :get, data: { controller: "roster-filters" },
-        class: "flex flex-wrap items-end gap-3 mb-5" do %>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">Search</label>
-      <input type="text" name="q" value="<%= params[:q] %>" placeholder="Number, name, or email"
-             data-roster-filters-target="search" data-action="input->roster-filters#debouncedSubmit"
-             class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">Department</label>
-      <%= select_tag :department_id, options_from_collection_for_select(@departments, :id, :name, params[:department_id]),
-            include_blank: "All", data: { action: "change->roster-filters#submit" },
-            class: "rounded-lg border border-gray-300 px-3 py-2 text-sm" %>
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">Job title</label>
-      <%= select_tag :job_title_id, options_from_collection_for_select(@job_titles, :id, :name, params[:job_title_id]),
-            include_blank: "All", data: { action: "change->roster-filters#submit" },
-            class: "rounded-lg border border-gray-300 px-3 py-2 text-sm" %>
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">Payroll country</label>
-      <%= select_tag :payroll_country_id, options_from_collection_for_select(@countries, :id, :name, params[:payroll_country_id]),
-            include_blank: "All", data: { action: "change->roster-filters#submit" },
-            class: "rounded-lg border border-gray-300 px-3 py-2 text-sm" %>
-    </div>
-    <div>
-      <label class="block text-xs font-medium text-gray-500 mb-1">Employment status</label>
-      <%= select_tag :employment_status, options_for_select(Employment.statuses.keys.map { |s| [s.titleize, s] }, params[:employment_status]),
-            include_blank: "All", data: { action: "change->roster-filters#submit" },
-            class: "rounded-lg border border-gray-300 px-3 py-2 text-sm" %>
-    </div>
-    <div class="flex gap-2">
-      <button type="submit" class="bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-lg px-4 py-2 transition-colors">Filter</button>
-      <%= link_to "Clear", employees_path, class: "text-sm text-gray-500 hover:text-gray-900 px-2 py-2" %>
-    </div>
-  <% end %>
+  <%= render "shared/employee_search", url: employees_path,
+        departments: @departments, job_titles: @job_titles, countries: @countries %>
 
   <div class="bg-white rounded-lg ring-1 ring-gray-200 overflow-x-auto">
     <table class="min-w-full text-sm">

@@ -2,7 +2,7 @@ class Api::V1::EmployeesController < Api::V1::BaseController
   before_action :set_employee, only: %i[show update destroy salary_history]
 
   def index
-    pagy, employees = pagy(EmployeeRosterQuery.new(params).call)
+    pagy, employees = pagy(EmployeeQuery.new(params).roster)
 
     render json: {
       employees: employees.map { |employee| serialize(employee) },
