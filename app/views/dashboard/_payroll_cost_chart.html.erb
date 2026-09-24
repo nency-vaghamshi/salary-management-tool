@@ -1,0 +1,89 @@
+<%# locals: chart (PayrollCostChart), currency, money (lambda formatting full amounts) %>
+<% compact = ->(value) { number_to_human(value, units: { unit: "", thousand: "K", million: "M", billion: "B", trillion: "T" }, format: "%n%u", precision: 3, significant: true) } %>
+<% half = chart.points.size / 2 %>
+<% latest = chart.latest_point %>
+
+<div class="bg-white rounded-lg ring-1 ring-gray-200 p-5">
+  <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-0.5">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+      <h2 class="text-sm font-semibold text-gray-900">Payroll Cost Over Time</h2>
+    </div>
+    <% if latest %>
+      <p class="text-xs text-gray-500">
+        Latest: <span class="font-medium text-gray-900"><%= money.(latest.payroll.gross_total) %></span>
+        in <%= latest.month.strftime("%b %Y") %>
+      </p>
+    <% end %>
+  </div>
+  <p class="text-xs text-gray-400 mb-5 pl-4">Gross cost (net pay + tax) of completed runs per month, in <%= currency.code %> &middot; last <%= chart.points.size %> months</p>
+
+  <% if chart.any_data? %>
+    <div class="flex" role="img" aria-label="Line chart of monthly payroll cost in <%= currency.code %>. Figures are also listed in the Month-wise payroll table.">
+      <div class="relative w-12 shrink-0 h-56" aria-hidden="true">
+        <% chart.y_ticks.each do |tick| %>
+          <span class="absolute right-2 -translate-y-1/2 text-[11px] text-gray-400 tabular-nums" style="top: <%= tick[:y].round(3) %>%"><%= compact.(tick[:value]) %></span>
+        <% end %>
+      </div>
+
+      <div class="relative flex-1 h-56">
+        <svg class="absolute inset-0 w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <% chart.y_ticks.each do |tick| %>
+            <line x1="0" x2="100" y1="<%= tick[:y].round(3) %>" y2="<%= tick[:y].round(3) %>" vector-effect="non-scaling-stroke"
+                  class="<%= tick[:value].zero? ? "stroke-gray-300" : "stroke-gray-100" %>" stroke-width="1" />
+          <% end %>
+          <% chart.line_segments.each do |segment| %>
+            <polyline points="<%= segment %>" fill="none" vector-effect="non-scaling-stroke" class="stroke-indigo-500"
+                      stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+          <% end %>
+        </svg>
+
+        <% chart.points.select(&:present?).each do |point| %>
+          <span class="absolute w-2.5 h-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500 ring-2 ring-white" aria-hidden="true"
+                style="left: <%= point.x.round(3) %>%; top: <%= point.y.round(3) %>%"></span>
+        <% end %>
+
+        <% if latest %>
+          <span class="absolute -translate-y-full pb-2 text-[11px] font-medium text-gray-700 tabular-nums whitespace-nowrap <%= latest.x > 80 ? "-translate-x-full" : "-translate-x-1/2" %>"
+                style="left: <%= latest.x.round(3) %>%; top: <%= latest.y.round(3) %>%" aria-hidden="true"><%= compact.(latest.payroll.gross_total) %></span>
+        <% end %>
+
+        <%# Hover/focus layer: one invisible column per month. %>
+        <div class="absolute inset-0 flex">
+          <% chart.points.each_with_index do |point, index| %>
+            <div class="group relative flex-1 outline-none" tabindex="0" aria-label="<%= point.month.strftime("%B %Y") %>">
+              <div class="hidden group-hover:block group-focus:block absolute inset-y-0 left-1/2 w-px bg-gray-300"></div>
+              <div class="hidden group-hover:block group-focus:block absolute bottom-2 z-10 w-48 rounded-lg bg-gray-900 text-white text-xs p-3 shadow-lg pointer-events-none <%= index < half ? "left-1/2" : "right-1/2" %>">
+                <p class="font-medium mb-1.5"><%= point.month.strftime("%B %Y") %></p>
+                <% if point.present? %>
+                  <dl class="space-y-0.5 tabular-nums">
+                    <div class="flex justify-between gap-3"><dt class="text-gray-400">Cost</dt><dd class="font-medium"><%= money.(point.payroll.gross_total) %></dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-gray-400">Tax</dt><dd><%= money.(point.payroll.tax_total) %></dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-gray-400">Net pay</dt><dd><%= money.(point.payroll.net_total) %></dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-gray-400">Employees</dt><dd><%= number_with_delimiter(point.payroll.employee_count) %></dd></div>
+                  </dl>
+                <% else %>
+                  <p class="text-gray-400">No completed payroll run</p>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex pl-12 mt-2" aria-hidden="true">
+      <% chart.points.each_with_index do |point, index| %>
+        <div class="flex-1 text-center leading-tight <%= "max-sm:invisible" if index.odd? %>">
+          <span class="block text-[11px] text-gray-500"><%= point.month.strftime("%b") %></span>
+          <span class="block text-[10px] text-gray-400 <%= "invisible" unless index.zero? || point.month.month == 1 %>"><%= point.month.year %></span>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-sm text-gray-500 py-10 text-center">
+      No completed payroll runs in <%= currency.code %> in the last <%= chart.points.size %> months.
+      <%= link_to "Run payroll", new_payroll_run_path, class: "text-indigo-600 hover:text-indigo-800" %>
+    </p>
+  <% end %>
+</div>

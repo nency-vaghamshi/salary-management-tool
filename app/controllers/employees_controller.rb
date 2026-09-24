@@ -14,6 +14,9 @@ class EmployeesController < ApplicationController
                                    .where(employments: { employee_id: @employee.id })
                                    .includes(:currency, salary_record_components: :salary_component)
                                    .order(effective_from: :desc)
+                                   .to_a
+    # Who created each salary record, in one query for the whole history.
+    @salary_audits = AuditLog.creations_of(@salary_history).includes(:actor).index_by(&:auditable_id)
     @tax_estimate = SalaryTaxEstimator.new(@employee.current_salary_record).call if @employee.current_salary_record
   end
 

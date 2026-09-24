@@ -84,16 +84,33 @@
               <th class="text-left pb-2">Effective from</th>
               <th class="text-left pb-2">Effective to</th>
               <th class="text-left pb-2">Status</th>
+              <th class="text-left pb-2">Changed by</th>
               <th class="text-right pb-2">Amount</th>
             </tr>
           </thead>
           <tbody>
-            <% @salary_history.each do |record| %>
-              <tr class="border-t border-gray-100">
+            <% @salary_history.each_with_index do |record, index| %>
+              <% audit = @salary_audits[record.id] %>
+              <% previous = @salary_history[index + 1] %>
+              <tr class="border-t border-gray-100 align-top">
                 <td class="py-2"><%= link_to record.effective_from, salary_record_path(record), class: "text-indigo-600 hover:text-indigo-800" %></td>
                 <td class="py-2 text-gray-500"><%= record.effective_to || "Present" %></td>
                 <td class="py-2 text-gray-500"><%= record.status.titleize %></td>
-                <td class="py-2 text-right text-gray-900"><%= number_to_currency(record.total_amount, unit: record.currency.symbol) %></td>
+                <td class="py-2">
+                  <% if audit %>
+                    <span class="block text-gray-900"><%= audit.actor_name %></span>
+                    <time class="block text-xs text-gray-400" datetime="<%= audit.created_at.iso8601 %>"><%= audit.created_at.to_fs(:long) %></time>
+                  <% else %>
+                    <span class="text-gray-400" title="Created before audit logging, e.g. by seed data">&mdash;</span>
+                  <% end %>
+                </td>
+                <td class="py-2 text-right">
+                  <span class="block text-gray-900"><%= number_to_currency(record.total_amount, unit: record.currency.symbol) %></span>
+                  <% if previous && previous.currency_id == record.currency_id && previous.total_amount.positive? %>
+                    <% change = ((record.total_amount - previous.total_amount) / previous.total_amount * 100).round(1) %>
+                    <span class="block text-xs <%= change.negative? ? "text-red-600" : "text-green-700" %>"><%= change.positive? ? "+" : "" %><%= change %>% vs previous</span>
+                  <% end %>
+                </td>
               </tr>
             <% end %>
           </tbody>
