@@ -62,7 +62,7 @@ Rails.application.configure do
     host: Rails.application.credentials.app_host || "example.com",
     protocol: "https"
   }
-  config.action_mailer.smtp_settings = { 
+  config.action_mailer.smtp_settings ={
     address: "smtp.gmail.com",
     port: 587,
     domain: "gmail.com",
