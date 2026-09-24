@@ -8,7 +8,7 @@ gem "propshaft"
 gem "pg", "~> 1.1"
 # Pin below 3.0: pg 1.6's jsonb encoder passes a `quirks_mode:` keyword that
 # the json gem removed in 3.0, breaking any jsonb column write (see AuditLog).
-gem "json", "~> 2.9"
+gem "json", "~> 3.0"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
