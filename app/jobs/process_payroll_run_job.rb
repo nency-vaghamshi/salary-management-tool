@@ -17,5 +17,6 @@ class ProcessPayrollRunJob < ApplicationJob
     return unless payroll_run.draft?
 
     PayrollCalculator.new(payroll_run).call
+    PayslipGenerator.new(payroll_run).call
   end
 end

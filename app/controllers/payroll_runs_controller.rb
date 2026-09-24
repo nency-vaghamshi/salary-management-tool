@@ -34,7 +34,7 @@ class PayrollRunsController < ApplicationController
   # stays in Postgres and pagination still applies to the filtered result.
   def load_line_items
     line_items = @payroll_run.payroll_line_items
-                             .includes(:employee, salary_record: [ :currency, :salary_record_components ])
+                             .includes(:employee, :payslip, salary_record: [ :currency, :salary_record_components ])
                              .order(:employee_id)
     line_items = line_items.where(employee_id: employee_query.filtered.select(:id)) if employee_search_active?
 

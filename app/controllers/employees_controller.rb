@@ -17,6 +17,10 @@ class EmployeesController < ApplicationController
                                    .to_a
     # Who created each salary record, in one query for the whole history.
     @salary_audits = AuditLog.creations_of(@salary_history).includes(:actor).index_by(&:auditable_id)
+    @payslips = Payslip.joins(payroll_line_item: :payroll_run)
+                       .where(payroll_line_items: { employee_id: @employee.id })
+                       .includes(payroll_line_item: [ :payroll_run, { salary_record: :currency } ])
+                       .order("payroll_runs.period_start DESC")
     @tax_estimate = SalaryTaxEstimator.new(@employee.current_salary_record).call if @employee.current_salary_record
   end
 

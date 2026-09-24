@@ -119,5 +119,36 @@
         <p class="text-sm text-gray-500">No salary history yet.</p>
       <% end %>
     </section>
+
+    <section class="p-5" aria-labelledby="payslips-heading">
+      <h2 id="payslips-heading" class="text-sm font-semibold text-gray-900 mb-3">Payslips</h2>
+      <% if @payslips.any? %>
+        <table class="w-full text-sm">
+          <thead class="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <tr>
+              <th scope="col" class="text-left pb-2">Pay period</th>
+              <th scope="col" class="text-left pb-2">Reference</th>
+              <th scope="col" class="text-right pb-2">Net pay</th>
+              <th scope="col" class="pb-2"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @payslips.each do |payslip| %>
+              <% line_item = payslip.payroll_line_item %>
+              <tr class="border-t border-gray-100">
+                <td class="py-2 text-gray-900"><%= line_item.payroll_run.period_start.strftime("%B %Y") %></td>
+                <td class="py-2 tabular-nums text-gray-500"><%= payslip.reference %></td>
+                <td class="py-2 text-right tabular-nums text-gray-900"><%= format_money(line_item.amount, line_item.salary_record.currency) %></td>
+                <td class="py-2 pl-3 text-right">
+                  <%= link_to "View", payslip_path(payslip), class: "font-medium text-indigo-600 hover:text-indigo-800" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="text-sm text-gray-500">No payslips yet. They're issued automatically when a payroll run that includes this employee completes.</p>
+      <% end %>
+    </section>
   </div>
 </div>

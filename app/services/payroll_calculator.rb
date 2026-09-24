@@ -62,20 +62,26 @@ class PayrollCalculator
     estimate = SalaryTaxEstimator.new(salary_record).call
     return skip(employee, estimate.error) if estimate.error
 
+    # Tax is computed on the full annual income (progressive brackets), then
+    # the run pays only its period's share of both net pay and tax.
     # Return a raw hash of attributes instead of saving immediately
     {
       line_item: {
         payroll_run_id: payroll_run.id,
         employee_id: employee.id,
         salary_record_id: salary_record.id,
-        amount: estimate.net_amount,
-        tax_amount: estimate.tax_amount,
+        amount: (estimate.net_amount * proration_factor).round(2),
+        tax_amount: (estimate.tax_amount * proration_factor).round(2),
         created_at: Time.current,
         updated_at: Time.current
       }
     }
   rescue StandardError => e
     skip(employee, e.message)
+  end
+
+  def proration_factor
+    @proration_factor ||= payroll_run.proration_factor
   end
 
   # Uses Rails insert_all! to write 1000 rows in exactly ONE SQL query

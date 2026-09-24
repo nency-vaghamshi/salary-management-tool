@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   resources :employees
   resources :salary_records, only: %i[new create show]
   resources :payroll_runs, only: %i[index new create show]
+  resources :payslips, only: :show
   root "dashboard#index"
 
   namespace :api do

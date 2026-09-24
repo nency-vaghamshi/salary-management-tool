@@ -1,0 +1,100 @@
+<% s = @statement %>
+<% content_for :title, "Payslip #{s.reference}" %>
+<% day = ->(date) { date.strftime("%-d %b %Y") } %>
+<% period = "#{day.(s.payroll_run.period_start)} – #{day.(s.payroll_run.period_end)}" %>
+
+<div class="mx-auto max-w-3xl">
+  <div class="print:hidden">
+    <%= page_header title: "Payslip",
+          description: "#{s.employee.full_name} · #{period}",
+          breadcrumbs: [ [ "Employees", employees_path ], [ s.employee.full_name, employee_path(s.employee) ], [ s.reference, nil ] ] do %>
+      <%= link_to "View payroll run", payroll_run_path(s.payroll_run), class: ui_button_class(:secondary) %>
+      <button type="button" data-controller="print" data-action="print#print" class="<%= ui_button_class(:primary) %>">Download PDF</button>
+    <% end %>
+  </div>
+
+  <article class="rounded-lg bg-white ring-1 ring-gray-200 print:rounded-none print:ring-0" aria-label="Payslip <%= s.reference %>">
+    <header class="flex flex-wrap items-start justify-between gap-6 border-b border-gray-200 p-6 sm:p-8">
+      <div class="flex items-center gap-3">
+        <span class="flex size-10 items-center justify-center rounded-md bg-indigo-600 text-white print:bg-white print:text-indigo-700 print:ring-1 print:ring-indigo-600">
+          <%= icon(:brand, css: "size-6") %>
+        </span>
+        <div>
+          <p class="text-base font-semibold text-gray-900">ACME Corporation</p>
+          <p class="text-sm text-gray-500">Payslip</p>
+        </div>
+      </div>
+      <dl class="grid grid-cols-[auto_auto] gap-x-6 gap-y-1 text-sm">
+        <dt class="text-gray-500">Reference</dt><dd class="font-medium tabular-nums text-gray-900"><%= s.reference %></dd>
+        <dt class="text-gray-500">Pay period</dt><dd class="text-gray-900"><%= period %></dd>
+        <dt class="text-gray-500">Processed on</dt><dd class="text-gray-900"><%= s.payroll_run.processed_at ? day.(s.payroll_run.processed_at.to_date) : "—" %></dd>
+      </dl>
+    </header>
+
+    <section class="grid grid-cols-2 gap-x-6 gap-y-4 border-b border-gray-200 p-6 text-sm sm:grid-cols-3 sm:p-8" aria-label="Employee">
+      <div><p class="text-gray-500">Employee</p><p class="mt-0.5 font-medium text-gray-900"><%= s.employee.full_name %></p></div>
+      <div><p class="text-gray-500">Employee #</p><p class="mt-0.5 tabular-nums text-gray-900"><%= s.employee.employee_number %></p></div>
+      <div><p class="text-gray-500">Payroll country</p><p class="mt-0.5 text-gray-900"><%= s.employment.payroll_country.name %></p></div>
+      <div><p class="text-gray-500">Department</p><p class="mt-0.5 text-gray-900"><%= s.employee.department.name %></p></div>
+      <div><p class="text-gray-500">Job title</p><p class="mt-0.5 text-gray-900"><%= s.employee.job_title.name %></p></div>
+      <div><p class="text-gray-500">Currency</p><p class="mt-0.5 text-gray-900"><%= s.currency.code %></p></div>
+    </section>
+
+    <div class="grid gap-8 p-6 sm:p-8 md:grid-cols-2">
+      <section aria-labelledby="payslip-earnings">
+        <h2 id="payslip-earnings" class="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Earnings</h2>
+        <table class="w-full text-sm">
+          <tbody class="divide-y divide-gray-100">
+            <% s.earnings.each do |earning| %>
+              <tr>
+                <td class="py-2 text-gray-700">
+                  <%= earning.name %>
+                  <% unless earning.taxable %><span class="ml-1 text-xs text-gray-400">non-taxable</span><% end %>
+                </td>
+                <td class="py-2 text-right tabular-nums text-gray-900"><%= format_money(earning.amount, s.currency) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+          <tfoot>
+            <tr class="border-t border-gray-300">
+              <th scope="row" class="pt-2 text-left font-medium text-gray-900">Gross pay</th>
+              <td class="pt-2 text-right font-medium tabular-nums text-gray-900"><%= format_money(s.gross_pay, s.currency) %></td>
+            </tr>
+          </tfoot>
+        </table>
+      </section>
+
+      <section aria-labelledby="payslip-deductions">
+        <h2 id="payslip-deductions" class="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">Deductions</h2>
+        <table class="w-full text-sm">
+          <tbody class="divide-y divide-gray-100">
+            <tr>
+              <td class="py-2 text-gray-700">Income tax <span class="text-xs text-gray-400">(<%= s.employment.payroll_country.name %>)</span></td>
+              <td class="py-2 text-right tabular-nums text-gray-900"><%= format_money(s.tax, s.currency) %></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="border-t border-gray-300">
+              <th scope="row" class="pt-2 text-left font-medium text-gray-900">Total deductions</th>
+              <td class="pt-2 text-right font-medium tabular-nums text-gray-900"><%= format_money(s.tax, s.currency) %></td>
+            </tr>
+          </tfoot>
+        </table>
+      </section>
+    </div>
+
+    <div class="mx-6 mb-6 flex items-center justify-between rounded-md bg-gray-50 px-5 py-4 ring-1 ring-gray-200 sm:mx-8 sm:mb-8 print:bg-white">
+      <p class="text-sm font-medium text-gray-700">Net pay</p>
+      <p class="text-2xl font-semibold tracking-tight tabular-nums text-gray-900"><%= format_money(s.net_pay, s.currency) %></p>
+    </div>
+
+    <footer class="space-y-1 border-t border-gray-200 px-6 py-5 text-xs text-gray-500 sm:px-8">
+      <p>
+        Amounts are this period's share (<%= s.payroll_run.period_days %> days) of the annual salary effective
+        <%= day.(s.salary_record.effective_from) %> (annual gross <%= format_money(s.annual_gross, s.currency) %>).
+      </p>
+      <p>Income tax is calculated on annual taxable income using <%= s.employment.payroll_country.name %> tax brackets, then pro-rated to this period.</p>
+      <p>Issued <%= s.generated_at ? day.(s.generated_at.to_date) : "—" %>. This payslip is system-generated and does not require a signature.</p>
+    </footer>
+  </article>
+</div>
