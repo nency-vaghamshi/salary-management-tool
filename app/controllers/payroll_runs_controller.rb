@@ -27,9 +27,11 @@ class PayrollRunsController < ApplicationController
   private
 
   def load_line_items
-    @line_items = @payroll_run.payroll_line_items
-                              .includes(:employee, salary_record: :currency)
-                              .order(:employee_id)
+    @pagy, @line_items = pagy(
+      @payroll_run.payroll_line_items
+                  .includes(:employee, salary_record: [ :currency, :salary_record_components ])
+                  .order(:employee_id)
+    )
   end
 
   def set_payroll_run

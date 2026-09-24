@@ -87,7 +87,7 @@
     </table>
   </div>
 
-  <div class="mt-4 text-sm text-gray-500">
-    <%= raw pagy_nav(@pagy) if @pagy.pages > 1 %>
+  <div class="mt-4">
+    <%= render "shared/pagination", pagy: @pagy %>
   </div>
 </div>

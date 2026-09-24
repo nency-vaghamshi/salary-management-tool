@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_24_085450) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_24_114434) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -101,6 +101,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_24_085450) do
     t.decimal "amount", precision: 15, scale: 2, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "tax_amount", precision: 15, scale: 2, default: "0.0", null: false
     t.index ["employee_id"], name: "index_payroll_line_items_on_employee_id"
     t.index ["payroll_run_id", "employee_id"], name: "index_payroll_line_items_on_payroll_run_id_and_employee_id"
     t.index ["payroll_run_id"], name: "index_payroll_line_items_on_payroll_run_id"

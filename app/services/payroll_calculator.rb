@@ -65,7 +65,8 @@ class PayrollCalculator
       payroll_run: payroll_run,
       employee: employee,
       salary_record: salary_record,
-      amount: estimate.net_amount
+      amount: estimate.net_amount,
+      tax_amount: estimate.tax_amount
     )
 
     {}
