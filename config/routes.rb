@@ -8,10 +8,11 @@ Rails.application.routes.draw do
 
   get "login", to: "sessions#new"
   get "register", to: "registrations#new"
+  get "dashboard", to: "dashboard#index"
   resources :employees
   resources :salary_records, only: %i[new create show]
   resources :payroll_runs, only: %i[index new create show]
-  root "employees#index"
+  root "dashboard#index"
 
   namespace :api do
     namespace :v1 do

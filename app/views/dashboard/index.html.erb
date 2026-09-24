@@ -1,0 +1,124 @@
+<% content_for :title, "Dashboard" %>
+
+<div class="w-full space-y-6">
+  <div>
+    <h1 class="text-xl font-semibold text-gray-900">Dashboard</h1>
+    <p class="text-sm text-gray-500">Organization-wide snapshot of headcount and compensation.</p>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div class="bg-white rounded-lg ring-1 ring-gray-200 p-4">
+      <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <path stroke-linecap="round" stroke-linejoin="round" d="<%= dashboard_stat_icon_path(:users) %>" />
+        </svg>
+      </div>
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total employees</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900"><%= number_with_delimiter(@total_employees) %></p>
+    </div>
+
+    <div class="bg-white rounded-lg ring-1 ring-gray-200 p-4">
+      <div class="w-9 h-9 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center mb-3">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <path stroke-linecap="round" stroke-linejoin="round" d="<%= dashboard_stat_icon_path(:currency) %>" />
+        </svg>
+      </div>
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total annual compensation</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900"><%= number_with_delimiter(@total_annual_compensation.round) %></p>
+      <p class="mt-0.5 text-xs text-gray-400">Local-currency units, not converted</p>
+    </div>
+
+    <div class="bg-white rounded-lg ring-1 ring-gray-200 p-4">
+      <div class="w-9 h-9 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center mb-3">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <path stroke-linecap="round" stroke-linejoin="round" d="<%= dashboard_stat_icon_path(:currency) %>" />
+        </svg>
+      </div>
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Average salary</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900"><%= number_with_delimiter(@average_salary.round) %></p>
+      <p class="mt-0.5 text-xs text-gray-400">Local-currency units, not converted</p>
+    </div>
+
+    <div class="bg-white rounded-lg ring-1 ring-gray-200 p-4">
+      <div class="w-9 h-9 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center mb-3">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <path stroke-linecap="round" stroke-linejoin="round" d="<%= dashboard_stat_icon_path(:globe) %>" />
+        </svg>
+      </div>
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Countries</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900"><%= number_with_delimiter(@number_of_countries) %></p>
+    </div>
+
+    <div class="bg-white rounded-lg ring-1 ring-gray-200 p-4">
+      <div class="w-9 h-9 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center mb-3">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <path stroke-linecap="round" stroke-linejoin="round" d="<%= dashboard_stat_icon_path(:building) %>" />
+        </svg>
+      </div>
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Departments</p>
+      <p class="mt-1 text-2xl font-semibold text-gray-900"><%= number_with_delimiter(@number_of_departments) %></p>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-lg ring-1 ring-gray-200 p-5">
+      <div class="flex items-center gap-2 mb-0.5">
+        <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+        <h2 class="text-sm font-semibold text-gray-900">Average salary by department</h2>
+      </div>
+      <p class="text-xs text-gray-400 mb-4 pl-4">Local-currency units, not converted</p>
+      <% max_average = @department_stats.map(&:average_compensation).max.to_f %>
+      <div>
+        <% @department_stats.each.with_index(1) do |stat, rank| %>
+          <%= render "bar_row",
+                rank: rank,
+                name: stat.name,
+                share: max_average.zero? ? 0 : (stat.average_compensation.to_f / max_average * 100).round(1),
+                value_label: number_with_delimiter(stat.average_compensation.round),
+                color: "bg-teal-500" %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg ring-1 ring-gray-200 p-5">
+      <div class="flex items-center gap-2 mb-0.5">
+        <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+        <h2 class="text-sm font-semibold text-gray-900">Employee distribution by country</h2>
+      </div>
+      <p class="text-xs text-gray-400 mb-4 pl-4">Top <%= @countries_by_headcount.size %> of <%= @number_of_countries %> countries by headcount</p>
+      <div>
+        <% @countries_by_headcount.each.with_index(1) do |stat, rank| %>
+          <% share = stat.employee_share_of(@total_employees) %>
+          <%= render "bar_row",
+                rank: rank,
+                name: stat.name,
+                share: share,
+                value_label: "#{number_with_delimiter(stat.employee_count)} (#{share}%)",
+                color: "bg-sky-500" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg ring-1 ring-gray-200 p-5">
+    <div class="flex items-center gap-2 mb-0.5">
+      <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+      <h2 class="text-sm font-semibold text-gray-900">Salary distribution by country</h2>
+    </div>
+    <p class="text-xs text-gray-400 mb-4 pl-4">
+      Top <%= @countries_by_compensation.size %> of <%= @number_of_countries %> countries by total compensation &middot;
+      local-currency units, not converted
+    </p>
+    <div>
+      <% @countries_by_compensation.each.with_index(1) do |stat, rank| %>
+        <% share = stat.share_of(@total_annual_compensation) %>
+        <%= render "bar_row",
+              rank: rank,
+              name: stat.name,
+              share: share,
+              value_label: "#{number_with_delimiter(stat.total_compensation.round)} (#{share}%)",
+              color: "bg-teal-500" %>
+      <% end %>
+    </div>
+  </div>
+</div>
