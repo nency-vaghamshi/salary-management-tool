@@ -1,5 +1,5 @@
 class User < ApplicationRecord
-  devise :database_authenticatable, :validatable
+  devise :database_authenticatable, :recoverable, :validatable
 
   enum :role, { hr_manager: "hr_manager" }
 

@@ -1,0 +1,12 @@
+<% content_for :title, "Reset password" %>
+
+<%= render layout: "users/passwords/card", locals: { title: "Forgot your password?", subtitle: "Enter your work email and we'll send you a link to set a new one." } do %>
+  <%= form_with model: resource, scope: resource_name, url: user_password_path, method: :post do |form| %>
+    <div class="mb-6">
+      <%= form.label :email, "Email", class: "mb-1.5 block text-sm font-medium text-gray-700" %>
+      <%= form.email_field :email, autofocus: true, autocomplete: "email", required: true,
+            placeholder: "you@company.com", class: ui_input_class %>
+    </div>
+    <%= form.submit "Send reset link", class: "#{ui_button_class(:primary)} w-full py-2.5" %>
+  <% end %>
+<% end %>

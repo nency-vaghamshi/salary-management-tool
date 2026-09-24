@@ -4,11 +4,20 @@ default: &default
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   host: localhost
 
+# Solid Queue keeps its job tables in a separate "queue" database so job
+# polling never competes with app queries and db/schema.rb stays app-only.
 development:
-  <<: *default
-  database: salary_management_development
-  username: <%= Rails.application.credentials.dig(:database, :development, :username) %>
-  password: <%= Rails.application.credentials.dig(:database, :development, :password) %>
+  primary:
+    <<: *default
+    database: salary_management_development
+    username: <%= Rails.application.credentials.dig(:database, :development, :username) %>
+    password: <%= Rails.application.credentials.dig(:database, :development, :password) %>
+  queue:
+    <<: *default
+    database: salary_management_development_queue
+    username: <%= Rails.application.credentials.dig(:database, :development, :username) %>
+    password: <%= Rails.application.credentials.dig(:database, :development, :password) %>
+    migrations_paths: db/queue_migrate
 
 test:
   <<: *default
@@ -17,7 +26,28 @@ test:
   password: <%= Rails.application.credentials.dig(:database, :test, :password) %>
 
 production:
-  <<: *default
-  database: salary_management_production
-  username: <%= Rails.application.credentials.dig(:database, :production, :username) %>
-  password: <%= Rails.application.credentials.dig(:database, :production, :password) %>
+  primary:
+    <<: *default
+    database: salary_management_production
+    username: <%= Rails.application.credentials.dig(:database, :production, :username) %>
+    password: <%= Rails.application.credentials.dig(:database, :production, :password) %>
+  queue:
+    <<: *default
+    database: salary_management_production_queue
+    username: <%= Rails.application.credentials.dig(:database, :production, :username) %>
+    password: <%= Rails.application.credentials.dig(:database, :production, :password) %>
+    migrations_paths: db/queue_migrate
+  # Rails 8 production defaults: Solid Cache (config/cache.yml) and Solid Cable
+  # (config/cable.yml) each keep their tables in their own database too.
+  cache:
+    <<: *default
+    database: salary_management_production_cache
+    username: <%= Rails.application.credentials.dig(:database, :production, :username) %>
+    password: <%= Rails.application.credentials.dig(:database, :production, :password) %>
+    migrations_paths: db/cache_migrate
+  cable:
+    <<: *default
+    database: salary_management_production_cable
+    username: <%= Rails.application.credentials.dig(:database, :production, :username) %>
+    password: <%= Rails.application.credentials.dig(:database, :production, :password) %>
+    migrations_paths: db/cable_migrate

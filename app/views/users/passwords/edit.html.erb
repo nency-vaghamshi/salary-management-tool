@@ -1,0 +1,23 @@
+<% content_for :title, "Set a new password" %>
+
+<%= render layout: "users/passwords/card", locals: { title: "Set a new password", subtitle: "Choose a password you haven't used for this account before." } do %>
+  <%= form_with model: resource, scope: resource_name, url: user_password_path, method: :put do |form| %>
+    <%= form.hidden_field :reset_password_token %>
+
+    <div class="mb-4">
+      <%= form.label :password, "New password", class: "mb-1.5 block text-sm font-medium text-gray-700" %>
+      <%= form.password_field :password, autofocus: true, autocomplete: "new-password", required: true,
+            minlength: @minimum_password_length, class: ui_input_class %>
+      <% if @minimum_password_length %>
+        <p class="mt-1 text-xs text-gray-500">At least <%= @minimum_password_length %> characters.</p>
+      <% end %>
+    </div>
+
+    <div class="mb-6">
+      <%= form.label :password_confirmation, "Confirm new password", class: "mb-1.5 block text-sm font-medium text-gray-700" %>
+      <%= form.password_field :password_confirmation, autocomplete: "new-password", required: true, class: ui_input_class %>
+    </div>
+
+    <%= form.submit "Update password", class: "#{ui_button_class(:primary)} w-full py-2.5" %>
+  <% end %>
+<% end %>
