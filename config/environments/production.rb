@@ -62,10 +62,10 @@ Rails.application.configure do
     host: Rails.application.credentials.app_host || "example.com",
     protocol: "https"
   }
-  config.action_mailer.smtp_settings = {
-    address: Rails.application.credentials.dig(:smtp, :address),
-    port: Rails.application.credentials.dig(:smtp, :port) || 587,
-    domain: Rails.application.credentials.dig(:smtp, :domain),
+  config.action_mailer.smtp_settings = { 
+    address: "smtp.gmail.com",
+    port: 587,
+    domain: "gmail.com",
     user_name: Rails.application.credentials.dig(:smtp, :user_name),
     password: Rails.application.credentials.dig(:smtp, :password),
     authentication: :plain,
