@@ -20,6 +20,18 @@
           class: "rounded-lg border border-gray-300 px-3 py-2 text-sm" %>
   </div>
   <div>
+    <label class="block text-xs font-medium text-gray-500 mb-1" for="nationality_country_id">Nationality</label>
+    <%= select_tag :nationality_country_id, options_from_collection_for_select(countries, :id, :name, params[:nationality_country_id]),
+          include_blank: "All", data: { action: "change->roster-filters#submit" },
+          class: "rounded-lg border border-gray-300 px-3 py-2 text-sm" %>
+  </div>
+  <div>
+    <label class="block text-xs font-medium text-gray-500 mb-1" for="residence_country_id">Residence</label>
+    <%= select_tag :residence_country_id, options_from_collection_for_select(countries, :id, :name, params[:residence_country_id]),
+          include_blank: "All", data: { action: "change->roster-filters#submit" },
+          class: "rounded-lg border border-gray-300 px-3 py-2 text-sm" %>
+  </div>
+  <div>
     <label class="block text-xs font-medium text-gray-500 mb-1" for="payroll_country_id">Payroll country</label>
     <%= select_tag :payroll_country_id, options_from_collection_for_select(countries, :id, :name, params[:payroll_country_id]),
           include_blank: "All", data: { action: "change->roster-filters#submit" },

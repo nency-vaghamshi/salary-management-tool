@@ -5,7 +5,9 @@
 #   EmployeeQuery.new(params).filtered # composable: no ORDER BY / DISTINCT,
 #                                      # safe as an `IN (subquery)`
 class EmployeeQuery
-  FILTER_KEYS = %i[q department_id job_title_id payroll_country_id employment_status].freeze
+  FILTER_KEYS = %i[q department_id job_title_id nationality_country_id residence_country_id
+                   payroll_country_id employment_status].freeze
+  EMPLOYEE_COLUMN_FILTERS = %i[department_id job_title_id nationality_country_id residence_country_id].freeze
   SORTABLE_COLUMNS = %w[employee_number first_name last_name email created_at].freeze
   DEFAULT_SORT = "employee_number".freeze
 
@@ -58,9 +60,9 @@ class EmployeeQuery
   end
 
   def filter_by_attributes(relation)
-    relation = relation.where(department_id: params[:department_id]) if params[:department_id].present?
-    relation = relation.where(job_title_id: params[:job_title_id]) if params[:job_title_id].present?
-    relation
+    EMPLOYEE_COLUMN_FILTERS.reduce(relation) do |filtered_relation, column|
+      params[column].present? ? filtered_relation.where(column => params[column]) : filtered_relation
+    end
   end
 
   def filter_by_employment(relation)
