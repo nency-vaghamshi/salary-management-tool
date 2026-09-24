@@ -3,6 +3,10 @@
 # record is currently open-ended (effective_to = the day before the new
 # record starts, status flipped to inactive) and opens a new active one in
 # its place, atomically.
+#
+# Also accepts a new, unsaved employment (an employee's first salary): it is
+# saved in the same transaction, so a rejected salary never leaves an
+# orphaned employment behind.
 class SalaryRevisionService
   Result = Struct.new(:success?, :salary_record, :errors)
 
@@ -20,6 +24,7 @@ class SalaryRevisionService
     salary_record = nil
 
     ActiveRecord::Base.transaction do
+      employment.save! if employment.new_record?
       close_current_record!
       salary_record = create_salary_record!
       create_components!(salary_record)

@@ -1,18 +1,14 @@
 class SalaryRecordsController < ApplicationController
   before_action :set_employee, only: %i[new create]
+  before_action :load_form_options, only: %i[new create]
 
   def new
-    @currencies = Currency.order(:code)
-    @components = SalaryComponent.active.order(:name)
   end
 
   def create
-    @currencies = Currency.order(:code)
-    @components = SalaryComponent.active.order(:name)
-
     result = SalaryRevisionService.new(
-      employment: @employee.current_employment,
-      currency: Currency.find(params[:currency_id]),
+      employment: @employment || build_first_employment,
+      currency: Currency.find_by(id: params[:currency_id]),
       effective_from: params[:effective_from],
       component_amounts: component_amounts_param
     ).call
@@ -33,12 +29,29 @@ class SalaryRecordsController < ApplicationController
 
   private
 
+  # Captured once so the form's "first salary?" decision can't be flipped by
+  # an unsaved employment built during a failed create.
   def set_employee
     @employee = Employee.find(params[:employee_id])
+    @employment = @employee.current_employment
+  end
 
-    return if @employee.current_employment
+  def load_form_options
+    @currencies = Currency.order(:code)
+    @components = SalaryComponent.active.order(:name)
+    @countries = Country.order(:name) unless @employment
+  end
 
-    redirect_to employee_path(@employee), alert: "This employee has no employment record yet."
+  # A first salary has no employment to hang off yet, so the form collects
+  # payroll country and start date. Built by id (not via @employee) so Rails'
+  # has_many inversing doesn't add the unsaved record to @employee.employments.
+  def build_first_employment
+    Employment.new(
+      employee_id: @employee.id,
+      payroll_country_id: params[:payroll_country_id],
+      start_date: params[:start_date],
+      status: "active"
+    )
   end
 
   def component_amounts_param
