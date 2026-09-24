@@ -1,13 +1,6 @@
-# Processes a draft PayrollRun: for every employee with an active employment
-# and a current salary record, computes the tax-aware final salary (via
-# SalaryTaxEstimator, which resolves tax country from
-# employment.payroll_country_id) and persists it as a PayrollLineItem.
-#
-# Each employee is handled independently rather than inside one giant
-# transaction, so one bad or unconfigured-country record doesn't roll back
-# everyone else's already-computed payroll.
 class PayrollCalculator
   Result = Struct.new(:payroll_run, :processed_count, :skipped, keyword_init: true)
+  BATCH_SIZE = 1000
 
   def initialize(payroll_run)
     @payroll_run = payroll_run
@@ -15,15 +8,29 @@ class PayrollCalculator
 
   def call
     raise ArgumentError, "Only a draft payroll run can be processed" unless payroll_run.draft?
-
     payroll_run.update!(status: "processing")
     processed = 0
     skipped = []
+    line_items_buffer = []
 
-    eligible_employees.find_each do |employee|
+    eligible_employees.find_each(batch_size: BATCH_SIZE) do |employee|
       outcome = process_employee(employee)
-      outcome[:skipped] ? skipped << outcome[:skipped] : processed += 1
+      if outcome[:skipped]
+        skipped << outcome[:skipped]
+      else
+        processed += 1
+        line_items_buffer << outcome[:line_item]
+
+        # Flush buffer to database in bulk chunks
+        if line_items_buffer.size >= BATCH_SIZE
+          bulk_insert_line_items(line_items_buffer)
+          line_items_buffer.clear
+        end
+      end
     end
+
+    # Insert any remaining records left in the buffer
+    bulk_insert_line_items(line_items_buffer) if line_items_buffer.any?
 
     payroll_run.update!(status: "completed", processed_at: Time.current, skipped_employees: skipped)
     Result.new(payroll_run: payroll_run, processed_count: processed, skipped: skipped)
@@ -36,12 +43,6 @@ class PayrollCalculator
 
   attr_reader :payroll_run
 
-  # Plain preloading only (no joins/where on the same association tree) so
-  # Rails issues a handful of flat, indexed "WHERE id IN (...)" queries per
-  # batch instead of eager_load-ing employments/salary_records/components
-  # into one combinatorial join — the latter took 10k employees from a few
-  # seconds to nearly 3 minutes. "Active employment" filtering happens in
-  # Ruby in process_employee, which needs the current one, not just any.
   def eligible_employees
     Employee.includes(
       employments: [
@@ -61,17 +62,25 @@ class PayrollCalculator
     estimate = SalaryTaxEstimator.new(salary_record).call
     return skip(employee, estimate.error) if estimate.error
 
-    PayrollLineItem.create!(
-      payroll_run: payroll_run,
-      employee: employee,
-      salary_record: salary_record,
-      amount: estimate.net_amount,
-      tax_amount: estimate.tax_amount
-    )
-
-    {}
+    # Return a raw hash of attributes instead of saving immediately
+    {
+      line_item: {
+        payroll_run_id: payroll_run.id,
+        employee_id: employee.id,
+        salary_record_id: salary_record.id,
+        amount: estimate.net_amount,
+        tax_amount: estimate.tax_amount,
+        created_at: Time.current,
+        updated_at: Time.current
+      }
+    }
   rescue StandardError => e
     skip(employee, e.message)
+  end
+
+  # Uses Rails insert_all! to write 1000 rows in exactly ONE SQL query
+  def bulk_insert_line_items(items)
+    PayrollLineItem.insert_all!(items)
   end
 
   def skip(employee, reason)
