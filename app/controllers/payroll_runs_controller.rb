@@ -16,8 +16,8 @@ class PayrollRunsController < ApplicationController
     @payroll_run = PayrollRun.new(payroll_run_params)
 
     if @payroll_run.save
-      result = PayrollCalculator.new(@payroll_run).call
-      redirect_to @payroll_run, notice: run_summary(result)
+      ProcessPayrollRunJob.perform_later(@payroll_run)
+      redirect_to @payroll_run, notice: "Payroll run queued. This page updates automatically when it finishes."
     else
       render :new, status: :unprocessable_content
     end
@@ -51,12 +51,6 @@ class PayrollRunsController < ApplicationController
 
   def set_payroll_run
     @payroll_run = PayrollRun.find(params[:id])
-  end
-
-  def run_summary(result)
-    return "Processed #{result.processed_count} employee(s)." if result.skipped.empty?
-
-    "Processed #{result.processed_count} employee(s), skipped #{result.skipped.count}."
   end
 
   def payroll_run_params

@@ -21,9 +21,7 @@
           <tr>
             <td class="px-4 py-3 text-gray-900"><%= payroll_run.period_start %> &ndash; <%= payroll_run.period_end %></td>
             <td class="px-4 py-3">
-              <span class="text-xs font-medium px-2 py-1 rounded-full <%= payroll_run.completed? ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' %>">
-                <%= payroll_run.status.titleize %>
-              </span>
+              <%= render "status_badge", payroll_run: payroll_run %>
             </td>
             <td class="px-4 py-3 text-gray-500"><%= payroll_run.processed_at&.to_fs(:long) || "—" %></td>
             <td class="px-4 py-3 text-right">

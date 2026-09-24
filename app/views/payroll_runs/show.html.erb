@@ -1,4 +1,8 @@
 <% content_for :title, "Payroll Run" %>
+<% in_progress = @payroll_run.draft? || @payroll_run.processing? %>
+<% if in_progress %>
+  <% content_for :head do %><meta http-equiv="refresh" content="3"><% end %>
+<% end %>
 
 <div class="w-full max-w-3xl">
   <div class="flex items-center justify-between mb-6">
@@ -6,10 +10,23 @@
       <h1 class="text-xl font-semibold text-gray-900">Payroll Run</h1>
       <p class="text-sm text-gray-500"><%= @payroll_run.period_start %> &ndash; <%= @payroll_run.period_end %></p>
     </div>
-    <span class="text-xs font-medium px-2 py-1 rounded-full <%= @payroll_run.completed? ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' %>">
-      <%= @payroll_run.status.titleize %>
-    </span>
+    <%= render "status_badge", payroll_run: @payroll_run %>
   </div>
+
+  <% if in_progress %>
+    <div class="flex items-center gap-2 rounded-lg bg-blue-50 text-blue-800 text-sm px-4 py-3 ring-1 ring-blue-100 mb-5">
+      <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.37 0 0 5.37 0 12h4Z"></path></svg>
+      <%= @payroll_run.draft? ? "Waiting for a worker to pick up this run…" : "Calculating payroll for every eligible employee…" %>
+    </div>
+  <% elsif @payroll_run.failed? %>
+    <div class="rounded-lg bg-red-50 text-red-700 text-sm px-4 py-3 ring-1 ring-red-100 mb-5">
+      This run failed partway through. Any line items below were saved before the failure; check the job's error in Solid Queue.
+    </div>
+  <% elsif @payroll_run.completed? %>
+    <p class="text-sm text-gray-500 mb-5">
+      Processed <%= number_with_delimiter(@payroll_run.payroll_line_items.count) %> employee(s)<%= ", skipped #{number_with_delimiter(@payroll_run.skipped_employees.size)}" if @payroll_run.skipped_employees.any? %>.
+    </p>
+  <% end %>
 
   <%= render "shared/employee_search", url: payroll_run_path(@payroll_run),
         departments: @departments, job_titles: @job_titles, countries: @countries %>
