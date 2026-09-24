@@ -1,0 +1,40 @@
+<%# App navigation: fixed column on lg+, slide-out drawer (sidebar controller) below. %>
+<% nav_items = [
+     { label: "Dashboard", path: dashboard_path, icon: :dashboard, controllers: %w[dashboard] },
+     { label: "Employees", path: employees_path, icon: :users, controllers: %w[employees salary_records] },
+     { label: "Payroll", path: payroll_runs_path, icon: :payroll, controllers: %w[payroll_runs] }
+   ] %>
+
+<div data-sidebar-target="backdrop" data-action="click->sidebar#close"
+     class="hidden fixed inset-0 z-40 bg-gray-900/40 lg:hidden" aria-hidden="true"></div>
+
+<aside id="app-sidebar" data-sidebar-target="panel"
+       class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-gray-200 bg-white transition-transform duration-200 motion-reduce:transition-none lg:translate-x-0">
+  <div class="flex h-16 shrink-0 items-center justify-between gap-2 px-5">
+    <%= link_to root_path, class: "flex items-center gap-2.5" do %>
+      <span class="flex size-8 items-center justify-center rounded-md bg-indigo-600 text-white">
+        <%= icon(:brand, css: "size-5") %>
+      </span>
+      <span class="text-sm font-semibold tracking-tight text-gray-900">ACME Salary</span>
+    <% end %>
+    <button type="button" data-action="sidebar#close" class="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 lg:hidden">
+      <%= icon(:close, label: "Close navigation") %>
+    </button>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto px-3 py-2" aria-label="Main">
+    <ul class="space-y-0.5">
+      <% nav_items.each do |item| %>
+        <% active = item[:controllers].include?(controller_name) %>
+        <li>
+          <%= link_to item[:path],
+                class: "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium #{active ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}",
+                aria: { current: (active ? "page" : nil) } do %>
+            <%= icon(item[:icon], css: "size-5 shrink-0 #{active ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'}") %>
+            <%= item[:label] %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </nav>
+</aside>

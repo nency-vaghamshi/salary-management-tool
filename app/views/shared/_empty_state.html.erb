@@ -1,0 +1,10 @@
+<%# locals: title, description (optional), action_label/action_path (optional) %>
+<div class="px-6 py-12 text-center">
+  <p class="text-sm font-medium text-gray-900"><%= title %></p>
+  <% if local_assigns[:description].present? %>
+    <p class="mt-1 text-sm text-gray-500"><%= description %></p>
+  <% end %>
+  <% if local_assigns[:action_path] %>
+    <%= link_to action_label, action_path, class: "#{ui_button_class(:secondary)} mt-4" %>
+  <% end %>
+</div>

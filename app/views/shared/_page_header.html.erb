@@ -1,0 +1,31 @@
+<%# locals: title, description, breadcrumbs ([label, path] pairs, last may be a plain label), actions (html or nil) %>
+<header class="mb-6">
+  <% if breadcrumbs.any? %>
+    <nav aria-label="Breadcrumb" class="mb-2">
+      <ol class="flex flex-wrap items-center gap-1 text-xs text-gray-500">
+        <% breadcrumbs.each_with_index do |(label, path), index| %>
+          <li class="flex items-center gap-1">
+            <% if index.positive? %><%= icon(:chevron_right, css: "size-3 text-gray-400") %><% end %>
+            <% if path %>
+              <%= link_to label, path, class: "hover:text-gray-900" %>
+            <% else %>
+              <span class="text-gray-700" aria-current="page"><%= label %></span>
+            <% end %>
+          </li>
+        <% end %>
+      </ol>
+    </nav>
+  <% end %>
+
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div class="min-w-0">
+      <h1 class="text-xl font-semibold tracking-tight text-gray-900"><%= title %></h1>
+      <% if description.present? %>
+        <p class="mt-1 text-sm text-gray-500"><%= description %></p>
+      <% end %>
+    </div>
+    <% if actions.present? %>
+      <div class="flex flex-wrap items-center gap-2"><%= actions %></div>
+    <% end %>
+  </div>
+</header>
