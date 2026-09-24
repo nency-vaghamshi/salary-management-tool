@@ -1,5 +1,5 @@
 class Api::V1::EmployeesController < Api::V1::BaseController
-  before_action :set_employee, only: %i[show update destroy]
+  before_action :set_employee, only: %i[show update destroy salary_history]
 
   def index
     pagy, employees = pagy(EmployeeRosterQuery.new(params).call)
@@ -11,7 +11,13 @@ class Api::V1::EmployeesController < Api::V1::BaseController
   end
 
   def show
-    render json: { employee: serialize(@employee) }
+    employee_json = serialize(@employee)
+
+    if (salary_record = @employee.current_salary_record)
+      employee_json[:tax_estimate] = serialize_tax_estimate(SalaryTaxEstimator.new(salary_record).call)
+    end
+
+    render json: { employee: employee_json }
   end
 
   def create
@@ -35,6 +41,19 @@ class Api::V1::EmployeesController < Api::V1::BaseController
   def destroy
     @employee.destroy
     head :no_content
+  end
+
+  def salary_history
+    records = SalaryRecord.joins(:employment)
+                           .where(employments: { employee_id: @employee.id })
+                           .includes(:currency, salary_record_components: :salary_component)
+                           .order(effective_from: :desc)
+
+    render json: {
+      salary_history: records.map do |record|
+        serialize_salary_record(record).merge(tax_estimate: serialize_tax_estimate(SalaryTaxEstimator.new(record).call))
+      end
+    }
   end
 
   private
@@ -69,6 +88,30 @@ class Api::V1::EmployeesController < Api::V1::BaseController
       employment_status: employee.current_employment&.status,
       current_salary: employee.current_salary_record&.total_amount,
       currency: employee.current_salary_record&.currency&.code
+    }
+  end
+
+  def serialize_salary_record(record)
+    {
+      id: record.id,
+      currency: record.currency.code,
+      effective_from: record.effective_from,
+      effective_to: record.effective_to,
+      status: record.status,
+      total_amount: record.total_amount,
+      components: record.salary_record_components.map do |component|
+        { name: component.salary_component.name, amount: component.amount }
+      end
+    }
+  end
+
+  def serialize_tax_estimate(estimate)
+    return { error: estimate.error } if estimate.error
+
+    {
+      taxable_income: estimate.taxable_income,
+      tax_amount: estimate.tax_amount,
+      net_amount: estimate.net_amount
     }
   end
 end

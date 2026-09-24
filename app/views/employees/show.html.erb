@@ -40,14 +40,64 @@
     </section>
 
     <section class="p-5">
-      <h2 class="text-sm font-semibold text-gray-900 mb-3">Current Salary</h2>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-gray-900">Current Salary</h2>
+        <% if @employee.current_employment %>
+          <%= link_to "Revise Salary", new_salary_record_path(employee_id: @employee.id), class: "text-sm text-indigo-600 hover:text-indigo-800 font-medium" %>
+        <% end %>
+      </div>
       <% if (salary_record = @employee.current_salary_record) %>
-        <p class="text-sm text-gray-900">
+        <p class="text-sm text-gray-900 mb-3">
           <%= number_to_currency(salary_record.total_amount, unit: salary_record.currency.symbol) %>
           <span class="text-gray-500">effective <%= salary_record.effective_from %></span>
         </p>
+        <table class="w-full text-sm mb-4">
+          <% salary_record.salary_record_components.each do |component| %>
+            <tr class="border-t border-gray-100">
+              <td class="py-1.5 text-gray-500"><%= component.salary_component.name %></td>
+              <td class="py-1.5 text-right text-gray-900"><%= number_to_currency(component.amount, unit: salary_record.currency.symbol) %></td>
+            </tr>
+          <% end %>
+        </table>
+
+        <% if @tax_estimate.error %>
+          <p class="text-xs text-amber-600"><%= @tax_estimate.error %></p>
+        <% else %>
+          <dl class="grid grid-cols-2 gap-4 text-sm pt-3 border-t border-gray-100">
+            <div><dt class="text-gray-500">Estimated tax</dt><dd class="text-gray-900 mt-0.5"><%= number_to_currency(@tax_estimate.tax_amount, unit: salary_record.currency.symbol) %></dd></div>
+            <div><dt class="text-gray-500">Net salary</dt><dd class="text-gray-900 mt-0.5 font-medium"><%= number_to_currency(@tax_estimate.net_amount, unit: salary_record.currency.symbol) %></dd></div>
+          </dl>
+        <% end %>
       <% else %>
         <p class="text-sm text-gray-500">No salary record yet.</p>
+      <% end %>
+    </section>
+
+    <section class="p-5">
+      <h2 class="text-sm font-semibold text-gray-900 mb-3">Salary History</h2>
+      <% if @salary_history.any? %>
+        <table class="w-full text-sm">
+          <thead class="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <tr>
+              <th class="text-left pb-2">Effective from</th>
+              <th class="text-left pb-2">Effective to</th>
+              <th class="text-left pb-2">Status</th>
+              <th class="text-right pb-2">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @salary_history.each do |record| %>
+              <tr class="border-t border-gray-100">
+                <td class="py-2"><%= link_to record.effective_from, salary_record_path(record), class: "text-indigo-600 hover:text-indigo-800" %></td>
+                <td class="py-2 text-gray-500"><%= record.effective_to || "Present" %></td>
+                <td class="py-2 text-gray-500"><%= record.status.titleize %></td>
+                <td class="py-2 text-right text-gray-900"><%= number_to_currency(record.total_amount, unit: record.currency.symbol) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="text-sm text-gray-500">No salary history yet.</p>
       <% end %>
     </section>
   </div>

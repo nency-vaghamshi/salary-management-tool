@@ -10,6 +10,11 @@ class EmployeesController < ApplicationController
   end
 
   def show
+    @salary_history = SalaryRecord.joins(:employment)
+                                   .where(employments: { employee_id: @employee.id })
+                                   .includes(:currency, salary_record_components: :salary_component)
+                                   .order(effective_from: :desc)
+    @tax_estimate = SalaryTaxEstimator.new(@employee.current_salary_record).call if @employee.current_salary_record
   end
 
   def new

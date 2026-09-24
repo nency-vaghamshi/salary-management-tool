@@ -9,6 +9,8 @@ Rails.application.routes.draw do
   get "login", to: "sessions#new"
   get "register", to: "registrations#new"
   resources :employees
+  resources :salary_records, only: %i[new create show]
+  resources :payroll_runs, only: %i[index new create show]
   root "employees#index"
 
   namespace :api do
@@ -18,7 +20,13 @@ Rails.application.routes.draw do
       delete "auth/logout", to: "auth#logout"
       get "auth/me", to: "auth#me"
 
-      resources :employees, except: %i[new edit]
+      resources :employees, except: %i[new edit] do
+        member do
+          get :salary_history
+        end
+      end
+
+      resources :salary_records, only: %i[create show]
     end
   end
 

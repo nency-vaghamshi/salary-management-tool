@@ -1,0 +1,73 @@
+<% content_for :title, "Salary Record" %>
+
+<div class="w-full max-w-lg">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold text-gray-900">
+      <%= link_to @salary_record.employment.employee.full_name, employee_path(@salary_record.employment.employee), class: "hover:text-indigo-600" %>
+    </h1>
+    <span class="text-xs font-medium px-2 py-1 rounded-full <%= @salary_record.status == 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' %>">
+      <%= @salary_record.status.titleize %>
+    </span>
+  </div>
+
+  <div class="bg-white rounded-lg ring-1 ring-gray-200 p-5">
+    <dl class="grid grid-cols-2 gap-4 text-sm mb-5">
+      <div><dt class="text-gray-500">Effective from</dt><dd class="text-gray-900 mt-0.5"><%= @salary_record.effective_from %></dd></div>
+      <div><dt class="text-gray-500">Effective to</dt><dd class="text-gray-900 mt-0.5"><%= @salary_record.effective_to || "Present" %></dd></div>
+      <div><dt class="text-gray-500">Currency</dt><dd class="text-gray-900 mt-0.5"><%= @salary_record.currency.code %></dd></div>
+      <div><dt class="text-gray-500">Total</dt><dd class="text-gray-900 mt-0.5"><%= number_to_currency(@salary_record.total_amount, unit: @salary_record.currency.symbol) %></dd></div>
+    </dl>
+
+    <h2 class="text-sm font-semibold text-gray-900 mb-2">Components</h2>
+    <table class="w-full text-sm">
+      <% @salary_record.salary_record_components.each do |component| %>
+        <tr class="border-t border-gray-100">
+          <td class="py-2 text-gray-700">
+            <%= component.salary_component.name %>
+            <% unless component.salary_component.is_taxable %><span class="text-xs text-gray-400">(non-taxable)</span><% end %>
+          </td>
+          <td class="py-2 text-right text-gray-900"><%= number_to_currency(component.amount, unit: @salary_record.currency.symbol) %></td>
+        </tr>
+      <% end %>
+    </table>
+  </div>
+
+  <div class="bg-white rounded-lg ring-1 ring-gray-200 p-5 mt-4">
+    <h2 class="text-sm font-semibold text-gray-900 mb-3">
+      Estimated Tax &mdash; <%= @salary_record.employment.payroll_country.name %>
+    </h2>
+
+    <% if @tax_estimate.error %>
+      <p class="text-sm text-amber-600"><%= @tax_estimate.error %></p>
+    <% else %>
+      <dl class="grid grid-cols-2 gap-4 text-sm mb-4">
+        <div><dt class="text-gray-500">Taxable income</dt><dd class="text-gray-900 mt-0.5"><%= number_to_currency(@tax_estimate.taxable_income, unit: @salary_record.currency.symbol) %></dd></div>
+        <div><dt class="text-gray-500">Estimated tax</dt><dd class="text-gray-900 mt-0.5"><%= number_to_currency(@tax_estimate.tax_amount, unit: @salary_record.currency.symbol) %></dd></div>
+        <div><dt class="text-gray-500">Net salary</dt><dd class="text-gray-900 mt-0.5 font-medium"><%= number_to_currency(@tax_estimate.net_amount, unit: @salary_record.currency.symbol) %></dd></div>
+      </dl>
+
+      <table class="w-full text-sm">
+        <thead class="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <tr>
+            <th class="text-left pb-1">Bracket</th>
+            <th class="text-left pb-1">Rate</th>
+            <th class="text-right pb-1">Tax</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @tax_estimate.breakdown.each do |bracket| %>
+            <tr class="border-t border-gray-100">
+              <td class="py-1.5 text-gray-500">
+                <%= number_to_currency(bracket.min_income, unit: @salary_record.currency.symbol, precision: 0) %>
+                &ndash;
+                <%= bracket.max_income ? number_to_currency(bracket.max_income, unit: @salary_record.currency.symbol, precision: 0) : "and up" %>
+              </td>
+              <td class="py-1.5 text-gray-500"><%= number_to_percentage(bracket.rate, precision: 0) %></td>
+              <td class="py-1.5 text-right text-gray-900"><%= number_to_currency(bracket.tax, unit: @salary_record.currency.symbol) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>

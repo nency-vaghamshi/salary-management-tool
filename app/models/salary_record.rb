@@ -1,4 +1,6 @@
 class SalaryRecord < ApplicationRecord
+  include Auditable
+
   belongs_to :employment
   belongs_to :currency
 
@@ -12,6 +14,12 @@ class SalaryRecord < ApplicationRecord
   validate :effective_to_on_or_after_effective_from
   validate :period_does_not_overlap_existing_records
   validate :only_one_open_ended_record_per_employment
+
+  # Component amounts are stored pre-resolved (calculation_type records how
+  # each was derived, for audit purposes), so the total is a plain sum.
+  def total_amount
+    salary_record_components.sum(&:amount)
+  end
 
   private
 

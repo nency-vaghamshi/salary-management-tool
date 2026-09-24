@@ -4,6 +4,7 @@
 
 DepartmentSeeder.call
 JobTitleSeeder.call
+SalaryComponentSeeder.call
 hr_user = HrUserSeeder.call
 
 # Countries, currencies and tax brackets come from the external tax API, so
@@ -18,9 +19,10 @@ end
 EmployeeDataSeeder.call(50) if Employee.none?
 
 puts <<~SUMMARY
-  Departments: #{Department.count}
-  Job titles:  #{JobTitle.count}
-  Countries:   #{Country.count}
-  Employees:   #{Employee.count}
-  HR login:    #{hr_user.email}
+  Departments:       #{Department.count}
+  Job titles:        #{JobTitle.count}
+  Salary components: #{SalaryComponent.count}
+  Countries:         #{Country.count}
+  Employees:         #{Employee.count}
+  HR login:          #{hr_user.email}
 SUMMARY

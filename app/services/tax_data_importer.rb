@@ -55,11 +55,15 @@ class TaxDataImporter
         curr.symbol = country_data.currency
       end
 
-      country = Country.find_or_initialize_by(code: country_data.code)
-      if country.new_record?
-        country.name = country_data.country_name
-        country.currency = currency
-        country.save!
+      # The external API isn't consistent about ISO code length (alpha-2 vs
+      # alpha-3) for the same country across separate import runs, so a
+      # code-only lookup can miss an already-imported country and create a
+      # duplicate row. Name is the more stable identity across those runs.
+      country = Country.find_by(code: country_data.code) ||
+                Country.find_by("lower(name) = ?", country_data.country_name.downcase)
+
+      if country.nil?
+        country = Country.create!(code: country_data.code, name: country_data.country_name, currency: currency)
       end
 
       tax_configuration = TaxConfiguration.find_or_create_by!(
