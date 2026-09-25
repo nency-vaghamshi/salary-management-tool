@@ -14,10 +14,6 @@ if Country.none?
   puts "Tax import failed for: #{result.failed.map { |f| f[:code] }.join(', ')}" if result.failed.any?
 end
 
-# Sized for exercising the Employee CRUD screens locally; scales up to the
-# full 10k-employee dataset in the dedicated seed-data phase of the project plan.
-EmployeeDataSeeder.call(50) if Employee.none?
-
 puts <<~SUMMARY
   Departments:       #{Department.count}
   Job titles:        #{JobTitle.count}
