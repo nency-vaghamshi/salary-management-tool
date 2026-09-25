@@ -4,8 +4,20 @@ A web application that replaces ACME's Excel-based salary tracking. HR managers 
 
 Built with Ruby on Rails 8, Hotwire and PostgreSQL.
 
+**Live app:** <https://salary-management-tool-03n8.onrender.com> (login: `hr@acme.test` / `SecurePass123!`). It runs on Render's free tier, so the first request after a quiet spell can take about a minute while the service wakes up.
+
+## Demo
+
+▶️ [Watch the demo video on Google Drive](https://drive.google.com/drive/folders/1VM6WdkZsc0q5KvTg8c2Mf8h8SZLppTjf?usp=sharing) 
+
+## Database design
+
+![ER diagram](Salary_Management_ER_diagram.png)
+
 ## Contents
 
+- [Demo](#demo)
+- [Database design](#database-design)
 - [Features](#features)
 - [Tech stack](#tech-stack)
 - [Getting started](#getting-started)
@@ -131,7 +143,7 @@ bin/rails server              # terminal 1: app + background jobs
 bin/rails tailwindcss:watch   # terminal 2: rebuild CSS on change
 ```
 
-Open <http://localhost:3000>. Login: `hr@acme.test` / `SecurePass123!`
+Open <https://salary-management-tool-03n8.onrender.com/>. Login: `hr@acme.test` / `SecurePass123!`
 
 ## Testing and code quality
 
@@ -148,4 +160,4 @@ Jobs use the `:test` adapter in the test environment, so they're recorded rather
 ## Further documentation
 
 - [Database design](Design%20document.md)
-- [ER diagram](salary-management-E-R-diagram.png)
+- [ER diagram](Salary_Management_ER_diagram.png)
