@@ -79,4 +79,36 @@ RSpec.describe SalaryRecord, type: :model do
 
     expect(salary_record.payroll_line_items).to include(line_item)
   end
+
+  it "does not treat itself as an overlapping record when updated" do
+    record = create(:salary_record, effective_to: nil)
+
+    record.effective_to = Date.new(2025, 3, 31)
+
+    expect(record).to be_valid
+  end
+
+  it "destroys dependent salary_record_components when destroyed" do
+    component = create(:salary_record_component)
+
+    expect { component.salary_record.destroy! }.to change(SalaryRecordComponent, :count).by(-1)
+  end
+
+  it "defaults to the active status" do
+    expect(SalaryRecord.new.status).to eq("active")
+  end
+
+  describe "#total_amount" do
+    it "sums the component amounts" do
+      record = create(:salary_record)
+      create(:salary_record_component, salary_record: record, amount: 70_000)
+      create(:salary_record_component, salary_record: record, salary_component: create(:salary_component), amount: 5_000.50)
+
+      expect(record.reload.total_amount).to eq(75_000.50)
+    end
+
+    it "is zero when the record has no components" do
+      expect(create(:salary_record).total_amount).to eq(0)
+    end
+  end
 end

@@ -59,4 +59,32 @@ RSpec.describe PayrollLineItem, type: :model do
 
     expect(Payslip.exists?(payslip.id)).to be false
   end
+
+  it "is invalid without a tax_amount" do
+    line_item = build_stubbed(:payroll_line_item, tax_amount: nil)
+
+    expect(line_item).not_to be_valid
+    expect(line_item.errors[:tax_amount]).to include("can't be blank")
+  end
+
+  it "is invalid with a negative tax_amount" do
+    line_item = build_stubbed(:payroll_line_item, tax_amount: -1)
+
+    expect(line_item).not_to be_valid
+    expect(line_item.errors[:tax_amount]).to include("must be greater than or equal to 0")
+  end
+
+  it "is invalid with a second line item for the same employee in the same run" do
+    existing = create(:payroll_line_item)
+    duplicate = build(:payroll_line_item, payroll_run: existing.payroll_run, employee: existing.employee)
+
+    expect(duplicate).not_to be_valid
+    expect(duplicate.errors[:employee_id]).to include("already has a line item for this payroll run")
+  end
+
+  it "allows the same employee in a different run" do
+    existing = create(:payroll_line_item)
+
+    expect(build(:payroll_line_item, employee: existing.employee, salary_record: existing.salary_record)).to be_valid
+  end
 end

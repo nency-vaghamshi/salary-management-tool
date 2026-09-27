@@ -42,4 +42,14 @@ RSpec.describe SalaryComponent, type: :model do
   it "defaults is_taxable to false" do
     expect(SalaryComponent.new.is_taxable).to eq(false)
   end
+
+  describe ".active" do
+    it "returns only components that are switched on" do
+      active = create(:salary_component, is_active: true)
+      inactive = create(:salary_component, is_active: false)
+
+      expect(described_class.active).to include(active)
+      expect(described_class.active).not_to include(inactive)
+    end
+  end
 end

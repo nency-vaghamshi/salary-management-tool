@@ -49,4 +49,60 @@ RSpec.describe PayrollRun, type: :model do
 
     expect(payroll_run.payslips).to include(payslip)
   end
+
+  it "allows the same period_start with a different period_end" do
+    create(:payroll_run, period_start: Date.new(2026, 9, 1), period_end: Date.new(2026, 9, 30))
+
+    expect(build(:payroll_run, period_start: Date.new(2026, 9, 1), period_end: Date.new(2026, 9, 15))).to be_valid
+  end
+
+  it "is valid when period_end equals period_start, a one-day run" do
+    expect(build_stubbed(:payroll_run, period_start: Date.new(2026, 9, 1), period_end: Date.new(2026, 9, 1))).to be_valid
+  end
+
+  it "destroys dependent payroll_line_items when destroyed" do
+    line_item = create(:payroll_line_item)
+
+    expect { line_item.payroll_run.destroy! }.to change(PayrollLineItem, :count).by(-1)
+  end
+
+  describe "#period_days" do
+    it "counts both the first and last day of the period" do
+      run = build_stubbed(:payroll_run, period_start: Date.new(2026, 9, 1), period_end: Date.new(2026, 9, 30))
+
+      expect(run.period_days).to eq(30)
+    end
+
+    it "is 1 for a single-day run" do
+      run = build_stubbed(:payroll_run, period_start: Date.new(2026, 9, 1), period_end: Date.new(2026, 9, 1))
+
+      expect(run.period_days).to eq(1)
+    end
+  end
+
+  describe "#proration_factor" do
+    it "is the period's share of a 365-day year" do
+      run = build_stubbed(:payroll_run, period_start: Date.new(2026, 9, 1), period_end: Date.new(2026, 9, 30))
+
+      expect(run.proration_factor).to eq(30.to_d / 365)
+    end
+
+    it "uses 366 days when the period starts in a leap year" do
+      run = build_stubbed(:payroll_run, period_start: Date.new(2024, 2, 1), period_end: Date.new(2024, 2, 29))
+
+      expect(run.proration_factor).to eq(29.to_d / 366)
+    end
+
+    it "is exactly 1 for a full calendar year" do
+      run = build_stubbed(:payroll_run, period_start: Date.new(2026, 1, 1), period_end: Date.new(2026, 12, 31))
+
+      expect(run.proration_factor).to eq(1)
+    end
+
+    it "returns a BigDecimal so money math stays exact" do
+      run = build_stubbed(:payroll_run, period_start: Date.new(2026, 9, 1), period_end: Date.new(2026, 9, 30))
+
+      expect(run.proration_factor).to be_a(BigDecimal)
+    end
+  end
 end

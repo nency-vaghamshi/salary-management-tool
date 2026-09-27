@@ -110,4 +110,81 @@ RSpec.describe Employee, type: :model do
 
     expect(employee.payslips).to include(payslip)
   end
+
+  it "destroys dependent employments when destroyed" do
+    employee = create(:employee)
+    create(:employment, employee: employee)
+
+    expect { employee.destroy! }.to change(Employment, :count).by(-1)
+  end
+
+  it "creates employments through nested attributes" do
+    employee = build(:employee, employments_attributes: [ { payroll_country: create(:country), start_date: Date.new(2025, 1, 1) } ])
+
+    expect { employee.save! }.to change(Employment, :count).by(1)
+  end
+
+  describe "#full_name" do
+    it "joins the first and last name" do
+      expect(build_stubbed(:employee, first_name: "Ada", last_name: "Lovelace").full_name).to eq("Ada Lovelace")
+    end
+  end
+
+  describe "#current_employment" do
+    let(:employee) { create(:employee) }
+
+    it "prefers the open-ended employment over a more recently started ended one" do
+      open_ended = create(:employment, employee: employee, start_date: Date.new(2020, 1, 1), end_date: nil)
+      create(:employment, employee: employee, start_date: Date.new(2024, 1, 1), end_date: Date.new(2024, 6, 30))
+
+      expect(employee.reload.current_employment).to eq(open_ended)
+    end
+
+    it "falls back to the most recently started employment when all have ended" do
+      create(:employment, employee: employee, start_date: Date.new(2020, 1, 1), end_date: Date.new(2020, 12, 31))
+      latest = create(:employment, employee: employee, start_date: Date.new(2023, 1, 1), end_date: Date.new(2023, 12, 31))
+
+      expect(employee.reload.current_employment).to eq(latest)
+    end
+
+    it "still returns a terminated employment, so HR can see an ex-employee's last job" do
+      terminated = create(:employment, employee: employee, status: "terminated", end_date: Date.new(2025, 12, 31))
+
+      expect(employee.reload.current_employment).to eq(terminated)
+    end
+
+    it "returns nil when the employee has no employment" do
+      expect(employee.current_employment).to be_nil
+    end
+  end
+
+  describe "#current_salary_record" do
+    let(:employee) { create(:employee) }
+    let(:employment) { create(:employment, employee: employee) }
+
+    it "returns the latest salary record of the current employment" do
+      create(:salary_record, employment: employment, effective_from: Date.new(2024, 4, 1), effective_to: Date.new(2024, 12, 31))
+      latest = create(:salary_record, employment: employment, effective_from: Date.new(2025, 1, 1))
+
+      expect(employee.reload.current_salary_record).to eq(latest)
+    end
+
+    it "ignores salary records from a previous employment" do
+      old_employment = create(:employment, employee: employee, start_date: Date.new(2020, 1, 1), end_date: Date.new(2020, 12, 31))
+      create(:salary_record, employment: old_employment, effective_from: Date.new(2020, 1, 1))
+      current = create(:salary_record, employment: employment)
+
+      expect(employee.reload.current_salary_record).to eq(current)
+    end
+
+    it "returns nil when there is no employment" do
+      expect(employee.current_salary_record).to be_nil
+    end
+
+    it "returns nil when the current employment has no salary record" do
+      employment
+
+      expect(employee.reload.current_salary_record).to be_nil
+    end
+  end
 end

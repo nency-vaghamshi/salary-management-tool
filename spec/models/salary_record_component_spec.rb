@@ -55,4 +55,15 @@ RSpec.describe SalaryRecordComponent, type: :model do
 
     expect(line.calculation_type).to eq("percentage")
   end
+
+  it "is valid with a zero amount" do
+    expect(build_stubbed(:salary_record_component, amount: 0)).to be_valid
+  end
+
+  it "allows the same component on different salary records" do
+    existing = create(:salary_record_component)
+    other_record = create(:salary_record, employment: create(:employment))
+
+    expect(build(:salary_record_component, salary_record: other_record, salary_component: existing.salary_component)).to be_valid
+  end
 end
