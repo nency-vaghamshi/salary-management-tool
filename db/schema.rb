@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_24_190730) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_27_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -234,4 +234,47 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_24_190730) do
   add_foreign_key "salary_records", "employments"
   add_foreign_key "tax_brackets", "tax_configurations"
   add_foreign_key "tax_configurations", "countries"
+
+  create_function :enforce_salary_record_immutability, sql_definition: <<-'SQL'
+      CREATE OR REPLACE FUNCTION public.enforce_salary_record_immutability()
+       RETURNS trigger
+       LANGUAGE plpgsql
+      AS $function$
+      BEGIN
+        -- A closed (inactive) record is history: frozen completely.
+        IF OLD.status = 'inactive' THEN
+          RAISE EXCEPTION 'Salary record % is inactive and cannot be modified', OLD.id;
+        END IF;
+
+        -- An active record may only be closed (effective_to + status, which is
+        -- what SalaryRevisionService does); its identity and terms are fixed.
+        IF NEW.employment_id  IS DISTINCT FROM OLD.employment_id OR
+           NEW.currency_id    IS DISTINCT FROM OLD.currency_id OR
+           NEW.effective_from IS DISTINCT FROM OLD.effective_from THEN
+          RAISE EXCEPTION 'Salary record % terms cannot be changed; create a revision instead', OLD.id;
+        END IF;
+
+        RETURN NEW;
+      END;
+      $function$
+  SQL
+
+  create_function :prevent_salary_record_component_update, sql_definition: <<-'SQL'
+      CREATE OR REPLACE FUNCTION public.prevent_salary_record_component_update()
+       RETURNS trigger
+       LANGUAGE plpgsql
+      AS $function$
+      BEGIN
+        RAISE EXCEPTION 'Salary record component % cannot be modified; create a revision instead', OLD.id;
+      END;
+      $function$
+  SQL
+
+  create_trigger :salary_record_components_immutability, sql_definition: <<-SQL
+      CREATE TRIGGER salary_record_components_immutability BEFORE UPDATE ON public.salary_record_components FOR EACH ROW EXECUTE FUNCTION prevent_salary_record_component_update()
+  SQL
+
+  create_trigger :salary_records_immutability, sql_definition: <<-SQL
+      CREATE TRIGGER salary_records_immutability BEFORE UPDATE ON public.salary_records FOR EACH ROW EXECUTE FUNCTION enforce_salary_record_immutability()
+  SQL
 end

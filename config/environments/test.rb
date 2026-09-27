@@ -53,4 +53,10 @@ Rails.application.configure do
 
   # Jobs are captured, not run, so specs stay fast and assert on enqueuing.
   config.active_job.queue_adapter = :test
+
+  # Request specs fail on an N+1 so regressions surface in CI, not production.
+  config.after_initialize do
+    Bullet.enable = true
+    Bullet.raise = true
+  end
 end

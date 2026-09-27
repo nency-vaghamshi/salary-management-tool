@@ -8,7 +8,6 @@ FactoryBot.define do
     job_title
     nationality_country { nil }
     residence_country { nil }
-  
     # An employee who can actually be paid: a payroll country with a flat-rate
     # tax bracket, an active employment, and one taxable salary component.
     trait :with_salary do

@@ -8,31 +8,38 @@ class PayrollCalculator
 
   def call
     raise ArgumentError, "Only a draft payroll run can be processed" unless payroll_run.draft?
+    # Committed outside the transaction so the run page can show "processing"
+    # while the (long) calculation is in flight.
     payroll_run.update!(status: "processing")
     processed = 0
     skipped = []
     line_items_buffer = []
 
-    eligible_employees.find_each(batch_size: BATCH_SIZE) do |employee|
-      outcome = process_employee(employee)
-      if outcome[:skipped]
-        skipped << outcome[:skipped]
-      else
-        processed += 1
-        line_items_buffer << outcome[:line_item]
+    # All line items and the "completed" flip commit together: a crash midway
+    # rolls back every inserted batch, so a failed run never has partial items.
+    PayrollRun.transaction do
+      eligible_employees.find_each(batch_size: BATCH_SIZE) do |employee|
+        outcome = process_employee(employee)
+        if outcome[:skipped]
+          skipped << outcome[:skipped]
+        else
+          processed += 1
+          line_items_buffer << outcome[:line_item]
 
-        # Flush buffer to database in bulk chunks
-        if line_items_buffer.size >= BATCH_SIZE
-          bulk_insert_line_items(line_items_buffer)
-          line_items_buffer.clear
+          # Flush buffer to database in bulk chunks
+          if line_items_buffer.size >= BATCH_SIZE
+            bulk_insert_line_items(line_items_buffer)
+            line_items_buffer.clear
+          end
         end
       end
+
+      # Insert any remaining records left in the buffer
+      bulk_insert_line_items(line_items_buffer) if line_items_buffer.any?
+
+      payroll_run.update!(status: "completed", processed_at: Time.current, skipped_employees: skipped)
     end
 
-    # Insert any remaining records left in the buffer
-    bulk_insert_line_items(line_items_buffer) if line_items_buffer.any?
-
-    payroll_run.update!(status: "completed", processed_at: Time.current, skipped_employees: skipped)
     Result.new(payroll_run: payroll_run, processed_count: processed, skipped: skipped)
   rescue StandardError => e
     payroll_run.update!(status: "failed")
@@ -44,19 +51,24 @@ class PayrollCalculator
   attr_reader :payroll_run
 
   def eligible_employees
-    Employee.includes(
-      employments: [
-        { payroll_country: { tax_configurations: :tax_brackets } },
-        { salary_records: [ :currency, { salary_record_components: :salary_component } ] }
-      ]
-    )
+    Employee
+      .joins(:employments)
+      .where(employments: { status: "active" })
+      .includes(
+        employments: [
+          { payroll_country: { tax_configurations: :tax_brackets } },
+          { salary_records: [ :currency, { salary_record_components: :salary_component } ] }
+        ]
+      ).distinct
   end
 
   def process_employee(employee)
-    employment = employee.current_employment
-    salary_record = employee.current_salary_record
+    # Read from the preloaded employments tree; employee.salary_records (a
+    # has_many :through) is not preloaded and would query once per employee.
+    employment = employee.employments.find(&:active?)
+    salary_record = employment&.salary_records&.find(&:active?)
 
-    return skip(employee, "No active employment") unless employment&.active?
+    return skip(employee, "No active employment") unless employment
     return skip(employee, "No salary record") unless salary_record
 
     estimate = SalaryTaxEstimator.new(salary_record).call

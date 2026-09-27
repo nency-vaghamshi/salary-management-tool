@@ -16,7 +16,7 @@ class PayrollRunsController < ApplicationController
     @payroll_run = PayrollRun.new(payroll_run_params)
 
     if @payroll_run.save
-      ProcessPayrollRunJob.perform_later(@payroll_run)
+      ProcessPayrollRunJob.perform_later(@payroll_run.id)
       redirect_to @payroll_run, notice: "Payroll run queued. This page updates automatically when it finishes."
     else
       render :new, status: :unprocessable_content
@@ -34,7 +34,7 @@ class PayrollRunsController < ApplicationController
   # stays in Postgres and pagination still applies to the filtered result.
   def load_line_items
     line_items = @payroll_run.payroll_line_items
-                             .includes(:employee, :payslip, salary_record: [ :currency, :salary_record_components ])
+                             .includes(:employee, :payslip, salary_record: :currency)
                              .order(:employee_id)
     line_items = line_items.where(employee_id: employee_query.filtered.select(:id)) if employee_search_active?
 

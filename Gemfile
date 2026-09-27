@@ -57,6 +57,9 @@ gem "faraday-retry"
 
 # Generates realistic fake data for seeding (names, emails, etc.) [https://github.com/faker-ruby/faker]
 gem "faker"
+
+# Keeps Postgres functions/triggers in schema.rb (db/functions, db/triggers) [https://github.com/teoljungberg/fx]
+gem "fx"
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -81,9 +84,15 @@ group :development, :test do
 
   # Fixtures replacement with a straightforward definition syntax [https://github.com/thoughtbot/factory_bot_rails]
   gem "factory_bot_rails"
+
+  # Flags N+1 queries and unused eager loading [https://github.com/flyerhzm/bullet]
+  gem "bullet"
 end
 
 group :test do
+  # Test coverage report in coverage/index.html [https://github.com/simplecov-ruby/simplecov]
+  gem "simplecov", require: false
+
   # Stubs HTTP requests in specs so external API clients are tested without
   # real network calls [https://github.com/bblimke/webmock]
   gem "webmock"

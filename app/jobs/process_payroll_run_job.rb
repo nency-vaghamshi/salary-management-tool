@@ -9,12 +9,13 @@ class ProcessPayrollRunJob < ApplicationJob
 
   # Solid Queue-level lock so a duplicate enqueue can never process the same
   # run twice in parallel (the draft? check alone is not atomic).
-  limits_concurrency to: 1, key: ->(payroll_run) { payroll_run }
+  limits_concurrency to: 1, key: ->(payroll_run_id) { payroll_run_id }
 
-  discard_on ActiveJob::DeserializationError
-
-  def perform(payroll_run)
-    return unless payroll_run.draft?
+  # Takes an id rather than the record so the worker reads the run's current
+  # state; find_by tolerates a run deleted between enqueue and execution.
+  def perform(payroll_run_id)
+    payroll_run = PayrollRun.find_by(id: payroll_run_id)
+    return unless payroll_run&.draft?
 
     PayrollCalculator.new(payroll_run).call
     PayslipGenerator.new(payroll_run).call

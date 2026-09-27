@@ -2,7 +2,8 @@ class Api::V1::EmployeesController < Api::V1::BaseController
   before_action :set_employee, only: %i[show update destroy salary_history]
 
   def index
-    pagy, employees = pagy(EmployeeQuery.new(params).roster)
+    # The HTML roster doesn't show countries, so only the API preloads them.
+    pagy, employees = pagy(EmployeeQuery.new(params).roster.includes(:nationality_country, :residence_country))
 
     render json: {
       employees: employees.map { |employee| serialize(employee) },
@@ -46,7 +47,8 @@ class Api::V1::EmployeesController < Api::V1::BaseController
   def salary_history
     records = SalaryRecord.joins(:employment)
                            .where(employments: { employee_id: @employee.id })
-                           .includes(:currency, salary_record_components: :salary_component)
+                           .includes(:currency, { employment: { payroll_country: { tax_configurations: :tax_brackets } } },
+                                     salary_record_components: :salary_component)
                            .order(effective_from: :desc)
 
     render json: {
