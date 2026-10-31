@@ -50,7 +50,7 @@ gem "jbuilder"
 
 # Pin below 3.0: pg 1.6's jsonb encoder passes a `quirks_mode:` keyword that
 # the json gem removed in 3.0, breaking any jsonb column write (see AuditLog).
-gem "json", "~> 2.9"
+gem "json", "~> 3.1"
 
 # Encode/decode JSON Web Tokens for the API's bearer authentication [https://github.com/jwt/ruby-jwt]
 gem "jwt"
