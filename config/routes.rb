@@ -1,10 +1,12 @@
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
+  mount MissionControl::Jobs::Engine, at: "/jobs"
   devise_for :users, only: :passwords, controllers: { passwords: "users/passwords" }
   devise_for :users, controllers: {
     sessions: "users/sessions",
-    registrations: "users/registrations"
+    registrations: "users/registrations",
+    omniauth_callbacks: "users/omniauth_callbacks"
   }
   get "dashboard", to: "dashboard#index"
   resources :employees

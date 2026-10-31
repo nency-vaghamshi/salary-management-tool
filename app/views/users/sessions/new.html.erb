@@ -112,6 +112,13 @@
         <%# </p> %>
       </form>
 
+      <div class="my-6 flex items-center gap-3 text-xs text-gray-400">
+        <span class="h-px flex-1 bg-gray-200"></span>or<span class="h-px flex-1 bg-gray-200"></span>
+      </div>
+      <%= button_to "Continue with Google", user_google_oauth2_omniauth_authorize_path,
+            method: :post, data: { turbo: false },
+            class: "w-full rounded-lg border border-gray-300 bg-white py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors" %>
+
       <p class="mt-6 text-center text-sm text-gray-500">
         Don&rsquo;t have an account?
         <%= link_to "Create one", new_user_registration_path, class: "font-medium text-indigo-600 hover:text-indigo-700" %>
