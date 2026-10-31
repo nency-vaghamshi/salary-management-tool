@@ -13,7 +13,6 @@ class Api::V1::EmployeesController < Api::V1::BaseController
 
   def show
     employee_json = serialize(@employee)
-
     if (salary_record = @employee.current_salary_record)
       employee_json[:tax_estimate] = serialize_tax_estimate(SalaryTaxEstimator.new(salary_record).call)
     end

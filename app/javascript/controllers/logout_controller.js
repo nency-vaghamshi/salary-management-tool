@@ -2,14 +2,12 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   async perform() {
-    const token = localStorage.getItem("jwt")
-
-    await fetch("/api/v1/auth/logout", {
+    // The browser sends the HttpOnly auth cookie itself; the server revokes the token and clears it.
+    await fetch("/users/sign_out", {
       method: "DELETE",
-      headers: token ? { "Authorization": `Bearer ${token}` } : {}
+      headers: { "Accept": "application/json" }
     })
 
-    localStorage.removeItem("jwt")
-    Turbo.visit("/login")
+    Turbo.visit("/users/sign_in")
   }
 }

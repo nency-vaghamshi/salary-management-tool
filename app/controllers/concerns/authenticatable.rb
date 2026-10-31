@@ -1,43 +1,28 @@
+# Authentication itself (authenticate_user!, current_user) comes from Devise and
+# devise-jwt. Don't redefine authenticate_user! here: Devise controllers call it
+# with options. This concern only feeds devise-jwt the browser's cookie token
+# and exposes the signed-in user to model-level code (Auditable) via Current.user.
 module Authenticatable
   extend ActiveSupport::Concern
+  include JwtCookie
 
   included do
-    helper_method :current_user if respond_to?(:helper_method)
+    before_action :use_cookie_token
+    before_action :set_current_user
   end
 
   private
 
-  def authenticate_user!
-    user = authenticated_user
-    return render_unauthenticated unless user
+  # devise-jwt only reads the Authorization header, so promote the cookie token
+  # when the client didn't send one. An explicit header always wins.
+  def use_cookie_token
+    return if request.authorization.present?
 
-    Current.user = user
+    token = cookies.signed[COOKIE_NAME]
+    request.headers["Authorization"] = "Bearer #{token}" if token.present?
   end
 
-  def authenticated_user
-    token = bearer_token || cookies.signed[:jwt]
-    return nil if token.blank?
-
-    payload = JsonWebToken.decode(token)
-    User.find_by(id: payload[:user_id])
-  rescue JWT::DecodeError
-    nil
-  end
-
-  def bearer_token
-    header = request.headers["Authorization"]
-    header.split(" ").last if header&.start_with?("Bearer ")
-  end
-
-  def render_unauthenticated
-    if request.format.html?
-      redirect_to login_path
-    else
-      render json: { error: "Unauthorized" }, status: :unauthorized
-    end
-  end
-
-  def current_user
-    Current.user
+  def set_current_user
+    Current.user = current_user
   end
 end

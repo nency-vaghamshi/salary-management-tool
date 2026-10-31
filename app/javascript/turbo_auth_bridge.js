@@ -1,13 +1,6 @@
-document.addEventListener("turbo:before-fetch-request", (event) => {
-  const token = localStorage.getItem("jwt")
-  if (!token) return
-
-  event.detail.fetchOptions.headers["Authorization"] = `Bearer ${token}`
-})
-
-document.addEventListener("turbo:before-fetch-response", async (event) => {
+// An expired or revoked cookie token surfaces as a 401 on Turbo fetches; send the user to sign in.
+document.addEventListener("turbo:before-fetch-response", (event) => {
   if (event.detail.fetchResponse.response.status === 401) {
-    localStorage.removeItem("jwt")
-    Turbo.visit("/login")
+    Turbo.visit("/users/sign_in")
   }
 })

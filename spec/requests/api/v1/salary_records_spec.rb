@@ -45,6 +45,25 @@ RSpec.describe "API v1 salary records", type: :request do
       expect(json["errors"]).to eq([ "Effective from is not a valid date" ])
     end
 
+    it "returns 404 for an unknown currency" do
+      post api_v1_salary_records_path, params: { employment_id: employment.id, currency_id: 0, effective_from: "2026-01-01",
+                                                 components: { component.id => "95000" } }, headers: headers, as: :json
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "returns 404 for an unknown salary component" do
+      post_revision(components: { 0 => "95000" })
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "does not create a record when validation fails" do
+      employment
+
+      expect { post_revision(components: {}) }.not_to change(SalaryRecord, :count)
+    end
+
     it "returns 404 for an unknown employment" do
       post_revision(components: { component.id => "95000" }, employment_id: 0)
 
@@ -61,6 +80,17 @@ RSpec.describe "API v1 salary records", type: :request do
       expect(response).to have_http_status(:ok)
       expect(json["salary_record"]["components"].sole["amount"]).to eq("100000.0")
       expect(json["salary_record"]["tax_estimate"]).to include("tax_amount" => "10000.0", "net_amount" => "90000.0")
+    end
+
+    it "reports why tax can't be estimated instead of failing" do
+      country = create(:country)
+      record = create(:salary_record, employment: create(:employment, payroll_country: country))
+      create(:salary_record_component, salary_record: record)
+
+      get api_v1_salary_record_path(record), headers: headers, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(json["salary_record"]["tax_estimate"]).to eq("error" => "No tax configuration found for #{country.name}")
     end
 
     it "returns 404 for an unknown record" do

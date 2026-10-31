@@ -1,13 +1,11 @@
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  # HR sign-in is a custom Stimulus-driven form posting to the JSON API below,
-  # so only Devise's password-reset routes are exposed; sessions and
-  # registrations stay on the custom JWT flow.
   devise_for :users, only: :passwords, controllers: { passwords: "users/passwords" }
-
-  get "login", to: "sessions#new"
-  get "register", to: "registrations#new"
+  devise_for :users, controllers: {
+    sessions: "users/sessions",
+    registrations: "users/registrations"
+  }
   get "dashboard", to: "dashboard#index"
   resources :employees
   resources :salary_records, only: %i[new create show]
@@ -17,11 +15,6 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      post "auth/signup", to: "auth#signup"
-      post "auth/login", to: "auth#login"
-      delete "auth/logout", to: "auth#logout"
-      get "auth/me", to: "auth#me"
-
       resources :employees, except: %i[new edit] do
         member do
           get :salary_history
