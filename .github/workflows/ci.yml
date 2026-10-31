@@ -16,7 +16,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: .ruby-version
+          ruby-version: "3.2" # latest 3.2.x: newer runner images only build the newest patch of each series
           bundler-cache: true
 
       - name: Scan for common Rails security vulnerabilities using static analysis
@@ -34,7 +34,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: .ruby-version
+          ruby-version: "3.2" # latest 3.2.x: newer runner images only build the newest patch of each series
           bundler-cache: true
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
@@ -49,7 +49,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: .ruby-version
+          ruby-version: "3.2" # latest 3.2.x: newer runner images only build the newest patch of each series
           bundler-cache: true
 
       - name: Lint code for consistent style
@@ -84,7 +84,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: .ruby-version
+          ruby-version: "3.2" # latest 3.2.x: newer runner images only build the newest patch of each series
           bundler-cache: true
 
       - name: Run tests
